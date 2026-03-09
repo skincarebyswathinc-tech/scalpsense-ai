@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import ProgressPage from "./pages/Progress";
 import HabitTracker from "./pages/HabitTracker";
+import PhotoTimeline from "./pages/PhotoTimeline";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
