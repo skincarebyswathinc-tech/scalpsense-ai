@@ -278,7 +278,7 @@ const Dashboard = () => {
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-3">
           <Button variant="hero" size="lg" asChild>
-            <Link to="/quiz"><Camera className="mr-2 h-4 w-4" /> Upload Scalp Photo</Link>
+            <Link to="/photos"><Camera className="mr-2 h-4 w-4" /> Upload Scalp Photo</Link>
           </Button>
 
           <Dialog open={hairFallOpen} onOpenChange={setHairFallOpen}>
