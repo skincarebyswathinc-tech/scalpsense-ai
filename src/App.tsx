@@ -10,6 +10,7 @@ import Report from "./pages/Report";
 import Protocol from "./pages/Protocol";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
+import ProgressPage from "./pages/Progress";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,8 +27,9 @@ const App = () => (
             <Route path="/quiz" element={<Quiz />} />
             <Route path="/report" element={<Report />} />
             <Route path="/protocol" element={<Protocol />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/auth" element={<Auth />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/progress" element={<ProgressPage />} />
+          <Route path="/auth" element={<Auth />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

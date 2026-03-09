@@ -187,7 +187,7 @@ const Dashboard = () => {
           </Dialog>
 
           <Button variant="outline" size="lg" asChild>
-            <Link to="/report"><BarChart3 className="mr-2 h-4 w-4" /> View Progress</Link>
+            <Link to="/progress"><BarChart3 className="mr-2 h-4 w-4" /> View Progress</Link>
           </Button>
         </div>
 
