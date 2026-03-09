@@ -61,12 +61,12 @@ const Progress = () => {
     const load = async () => {
       const [hRes, sRes, pRes] = await Promise.all([
         supabase.from("hair_fall_logs").select("count, logged_at").eq("user_id", user.id).order("logged_at"),
-        supabase.from("symptom_logs").select("symptoms, severity, logged_at").eq("user_id", user.id).order("logged_at"),
-        supabase.from("scalp_progress_photos").select("photo_url, week_number, uploaded_at, photo_type").eq("user_id", user.id).order("uploaded_at"),
+        supabase.from("symptom_logs" as any).select("symptoms, severity, logged_at").eq("user_id", user.id).order("logged_at"),
+        supabase.from("scalp_progress_photos" as any).select("photo_url, week_number, uploaded_at, photo_type").eq("user_id", user.id).order("uploaded_at"),
       ]);
-      if (hRes.data) setHairLogs(hRes.data);
-      if (sRes.data) setSymptomLogs(sRes.data);
-      if (pRes.data) setPhotos(pRes.data);
+      if (hRes.data) setHairLogs(hRes.data as any);
+      if (sRes.data) setSymptomLogs(sRes.data as any);
+      if (pRes.data) setPhotos(pRes.data as any);
     };
     load();
   }, [user]);
