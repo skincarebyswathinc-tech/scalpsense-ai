@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import ProgressPage from "./pages/Progress";
 import HabitTracker from "./pages/HabitTracker";
+import PhotoTimeline from "./pages/PhotoTimeline";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/progress" element={<ProgressPage />} />
           <Route path="/auth" element={<Auth />} />
             <Route path="/habits" element={<HabitTracker />} />
+            <Route path="/photos" element={<PhotoTimeline />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

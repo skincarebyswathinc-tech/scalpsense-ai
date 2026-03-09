@@ -211,6 +211,42 @@ export type Database = {
         }
         Relationships: []
       }
+      scalp_progress_photos: {
+        Row: {
+          hair_fall_level: string | null
+          id: string
+          notes: string | null
+          photo_type: string
+          photo_url: string
+          scalp_score: number | null
+          uploaded_at: string
+          user_id: string
+          week_number: number
+        }
+        Insert: {
+          hair_fall_level?: string | null
+          id?: string
+          notes?: string | null
+          photo_type?: string
+          photo_url: string
+          scalp_score?: number | null
+          uploaded_at?: string
+          user_id: string
+          week_number?: number
+        }
+        Update: {
+          hair_fall_level?: string | null
+          id?: string
+          notes?: string | null
+          photo_type?: string
+          photo_url?: string
+          scalp_score?: number | null
+          uploaded_at?: string
+          user_id?: string
+          week_number?: number
+        }
+        Relationships: []
+      }
       scalp_recovery_scores: {
         Row: {
           calculated_at: string
