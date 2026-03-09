@@ -14,6 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
+      hair_fall_logs: {
+        Row: {
+          count: number
+          id: string
+          logged_at: string
+          user_id: string
+        }
+        Insert: {
+          count: number
+          id?: string
+          logged_at?: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          id?: string
+          logged_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      routine_tasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          day_of_week: number | null
+          description: string | null
+          id: string
+          is_completed: boolean
+          title: string
+          user_id: string
+          week_number: number
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          day_of_week?: number | null
+          description?: string | null
+          id?: string
+          is_completed?: boolean
+          title: string
+          user_id: string
+          week_number?: number
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          day_of_week?: number | null
+          description?: string | null
+          id?: string
+          is_completed?: boolean
+          title?: string
+          user_id?: string
+          week_number?: number
+        }
+        Relationships: []
+      }
       scalp_assessments: {
         Row: {
           created_at: string
@@ -65,6 +143,36 @@ export type Database = {
           sleep_hours?: number
           stress_level?: Database["public"]["Enums"]["stress_level"]
           symptoms?: string[] | null
+        }
+        Relationships: []
+      }
+      user_reports: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          recovery_week: number
+          scalp_score: number
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          recovery_week?: number
+          scalp_score?: number
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          recovery_week?: number
+          scalp_score?: number
+          session_id?: string
+          user_id?: string
         }
         Relationships: []
       }
