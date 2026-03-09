@@ -121,15 +121,15 @@ const Progress = () => {
     const { error: upErr } = await supabase.storage.from("scalp-photos").upload(path, file);
     if (upErr) { toast({ title: "Upload failed", description: upErr.message, variant: "destructive" }); setUploading(false); return; }
     const { data: urlData } = supabase.storage.from("scalp-photos").getPublicUrl(path);
-    const { error } = await supabase.from("scalp_progress_photos").insert({
+    const { error } = await supabase.from("scalp_progress_photos" as any).insert({
       user_id: user.id, photo_url: urlData.publicUrl, week_number: parseInt(photoWeek), photo_type: "top",
-    });
+    } as any);
     setUploading(false);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Photo uploaded!" });
     setPhotoOpen(false);
-    const { data } = await supabase.from("scalp_progress_photos").select("photo_url, week_number, uploaded_at, photo_type").eq("user_id", user.id).order("uploaded_at");
-    if (data) setPhotos(data);
+    const { data } = await supabase.from("scalp_progress_photos" as any).select("photo_url, week_number, uploaded_at, photo_type").eq("user_id", user.id).order("uploaded_at");
+    if (data) setPhotos(data as any);
   };
 
   const handleSlider = (e: React.MouseEvent | React.TouchEvent) => {
