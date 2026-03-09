@@ -14,6 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
+      daily_habits: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          sort_order: number
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      habit_completions: {
+        Row: {
+          completed_at: string
+          completed_date: string
+          habit_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          completed_date?: string
+          habit_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          completed_date?: string
+          habit_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_completions_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "daily_habits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hair_fall_logs: {
         Row: {
           count: number
