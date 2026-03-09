@@ -211,6 +211,48 @@ export type Database = {
         }
         Relationships: []
       }
+      scalp_recovery_scores: {
+        Row: {
+          calculated_at: string
+          habit_score: number
+          hairfall_score: number
+          id: string
+          message: string | null
+          photo_score: number
+          protocol_score: number
+          score: number
+          symptom_score: number
+          user_id: string
+          week_number: number
+        }
+        Insert: {
+          calculated_at?: string
+          habit_score?: number
+          hairfall_score?: number
+          id?: string
+          message?: string | null
+          photo_score?: number
+          protocol_score?: number
+          score?: number
+          symptom_score?: number
+          user_id: string
+          week_number: number
+        }
+        Update: {
+          calculated_at?: string
+          habit_score?: number
+          hairfall_score?: number
+          id?: string
+          message?: string | null
+          photo_score?: number
+          protocol_score?: number
+          score?: number
+          symptom_score?: number
+          user_id?: string
+          week_number?: number
+        }
+        Relationships: []
+      }
       user_reports: {
         Row: {
           created_at: string

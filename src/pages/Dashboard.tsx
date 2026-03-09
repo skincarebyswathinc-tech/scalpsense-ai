@@ -7,11 +7,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import Navbar from "@/components/landing/Navbar";
-import { Camera, TrendingDown, BarChart3, Calendar, FileText, ClipboardList } from "lucide-react";
+import { Camera, TrendingDown, TrendingUp, BarChart3, Calendar, FileText, ClipboardList, Activity } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { calculateAndSaveScore, fetchAllScores, type WeeklyScore } from "@/lib/scoreCalculator";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { motion } from "framer-motion";
 
 interface RoutineTask {
   id: string;
@@ -48,10 +51,14 @@ const Dashboard = () => {
   const [hairFallCount, setHairFallCount] = useState("");
   const [hairFallOpen, setHairFallOpen] = useState(false);
 
+  // Score state
+  const [currentScore, setCurrentScore] = useState(0);
+  const [scores, setScores] = useState<WeeklyScore[]>([]);
+  const [scoreDelta, setScoreDelta] = useState<number | null>(null);
+  const [scoreMessage, setScoreMessage] = useState("");
+
   useEffect(() => {
-    if (!authLoading && !user) {
-      navigate("/auth");
-    }
+    if (!authLoading && !user) navigate("/auth");
   }, [authLoading, user, navigate]);
 
   useEffect(() => {
@@ -69,13 +76,40 @@ const Dashboard = () => {
       if (tasksRes.data) setTasks(tasksRes.data);
       if (reportsRes.data) setReports(reportsRes.data);
       if (logsRes.data) setHairLogs(logsRes.data);
+
+      // Calculate current week number (weeks since first report or 1)
+      const recoveryWeek = reportsRes.data?.[0]?.recovery_week ?? 1;
+
+      // Calculate & save score for current week
+      const breakdown = await calculateAndSaveScore(user.id, recoveryWeek);
+      setCurrentScore(breakdown.score);
+
+      // Fetch all historical scores
+      const allScores = await fetchAllScores(user.id);
+      setScores(allScores);
+
+      // Calculate delta
+      if (allScores.length >= 2) {
+        const prev = allScores[allScores.length - 2];
+        const curr = allScores[allScores.length - 1];
+        const delta = curr.score - prev.score;
+        setScoreDelta(delta);
+        if (delta > 0) {
+          setScoreMessage(`Your scalp health improved by ${delta}% this week. Keep it up! 🎉`);
+        } else if (delta < 0) {
+          setScoreMessage(`Your score dipped by ${Math.abs(delta)}%. Try focusing on daily habits and logging your symptoms regularly.`);
+        } else {
+          setScoreMessage("Your score is steady. Stay consistent with your routine!");
+        }
+      } else if (allScores.length === 1) {
+        setScoreMessage("Your first score is in! Keep tracking to see your improvement trend.");
+      }
     };
 
     fetchData();
   }, [user]);
 
   const latestReport = reports[0];
-  const scalpScore = latestReport?.scalp_score ?? 0;
   const recoveryWeek = latestReport?.recovery_week ?? 1;
   const completedTasks = tasks.filter((t) => t.is_completed).length;
   const totalTasks = tasks.length;
@@ -86,10 +120,7 @@ const Dashboard = () => {
   const weekTasks = tasks.filter((t) => t.week_number === recoveryWeek);
 
   const toggleTask = async (taskId: string, completed: boolean) => {
-    await supabase
-      .from("routine_tasks")
-      .update({ is_completed: completed, completed_at: completed ? new Date().toISOString() : null })
-      .eq("id", taskId);
+    await supabase.from("routine_tasks").update({ is_completed: completed, completed_at: completed ? new Date().toISOString() : null }).eq("id", taskId);
     setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, is_completed: completed } : t)));
   };
 
@@ -106,6 +137,11 @@ const Dashboard = () => {
       if (data) setHairLogs(data);
     }
   };
+
+  const chartData = scores.map((s) => ({
+    week: `Wk ${s.week_number}`,
+    score: s.score,
+  }));
 
   if (authLoading) {
     return (
@@ -129,18 +165,95 @@ const Dashboard = () => {
           <p className="text-muted-foreground font-body mt-1">Here's your scalp health overview.</p>
         </div>
 
-        {/* Score Cards Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="shadow-card">
-            <CardHeader className="pb-2">
-              <CardDescription className="font-body text-xs uppercase tracking-wider">Scalp Health Score</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-display font-bold text-primary">{scalpScore}<span className="text-lg text-muted-foreground">/100</span></div>
-              <Progress value={scalpScore} className="mt-3 h-2" />
+        {/* Scalp Recovery Score Hero Card */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <Card className="shadow-elevated border-primary/20 bg-gradient-to-br from-card to-accent/20">
+            <CardContent className="p-6 md:p-8">
+              <div className="flex flex-col md:flex-row md:items-center gap-6">
+                {/* Score Circle */}
+                <div className="flex-shrink-0 flex flex-col items-center">
+                  <div className="relative w-32 h-32">
+                    <svg viewBox="0 0 120 120" className="w-full h-full -rotate-90">
+                      <circle cx="60" cy="60" r="52" fill="none" stroke="hsl(var(--muted))" strokeWidth="10" />
+                      <circle
+                        cx="60" cy="60" r="52" fill="none"
+                        stroke="hsl(var(--primary))" strokeWidth="10"
+                        strokeLinecap="round"
+                        strokeDasharray={`${(currentScore / 100) * 327} 327`}
+                        className="transition-all duration-1000"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-3xl font-display font-bold text-foreground">{currentScore}</span>
+                      <span className="text-xs text-muted-foreground font-body">/100</span>
+                    </div>
+                  </div>
+                  <p className="font-body text-xs uppercase tracking-wider text-muted-foreground mt-2">Recovery Score</p>
+                </div>
+
+                {/* Score Details */}
+                <div className="flex-1 space-y-3">
+                  {/* Delta Badge */}
+                  {scoreDelta !== null && (
+                    <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-body font-medium ${scoreDelta > 0 ? "bg-accent text-accent-foreground" : scoreDelta < 0 ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>
+                      {scoreDelta > 0 ? <TrendingUp className="h-4 w-4" /> : scoreDelta < 0 ? <TrendingDown className="h-4 w-4" /> : <Activity className="h-4 w-4" />}
+                      {scoreDelta > 0 ? `+${scoreDelta}%` : scoreDelta < 0 ? `${scoreDelta}%` : "No change"}
+                    </div>
+                  )}
+
+                  <p className="font-body text-sm text-foreground">{scoreMessage}</p>
+
+                  {/* Component breakdown */}
+                  {scores.length > 0 && (() => {
+                    const latest = scores[scores.length - 1];
+                    const components = [
+                      { label: "Habits", value: latest.habit_score, max: 20 },
+                      { label: "Hair Fall", value: latest.hairfall_score, max: 20 },
+                      { label: "Symptoms", value: latest.symptom_score, max: 20 },
+                      { label: "Protocol", value: latest.protocol_score, max: 20 },
+                      { label: "Photos", value: latest.photo_score, max: 20 },
+                    ];
+                    return (
+                      <div className="grid grid-cols-5 gap-2 pt-2">
+                        {components.map((c) => (
+                          <div key={c.label} className="text-center">
+                            <div className="relative h-1.5 bg-muted rounded-full overflow-hidden mb-1">
+                              <div className="absolute h-full bg-primary rounded-full transition-all" style={{ width: `${(c.value / c.max) * 100}%` }} />
+                            </div>
+                            <span className="text-[10px] text-muted-foreground font-body">{c.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
             </CardContent>
           </Card>
+        </motion.div>
 
+        {/* Score Trend Chart */}
+        {chartData.length > 1 && (
+          <Card className="shadow-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="font-display text-lg flex items-center gap-2"><BarChart3 className="h-5 w-5 text-primary" /> Score Trend</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="week" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                  <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                  <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "var(--radius)" }} />
+                  <Line type="monotone" dataKey="score" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: "hsl(var(--primary))", r: 5 }} name="Score" />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Stats Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="shadow-card">
             <CardHeader className="pb-2">
               <CardDescription className="font-body text-xs uppercase tracking-wider">Recovery Week</CardDescription>
