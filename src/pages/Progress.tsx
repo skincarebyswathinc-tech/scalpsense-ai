@@ -101,17 +101,17 @@ const Progress = () => {
 
   const submitSymptoms = async () => {
     if (!user || selectedSymptoms.length === 0) return;
-    const { error } = await supabase.from("symptom_logs").insert({
+    const { error } = await supabase.from("symptom_logs" as any).insert({
       user_id: user.id, symptoms: selectedSymptoms, severity: parseInt(severity), notes: symptomNotes || null,
-    });
+    } as any);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Symptoms logged!" });
     setSelectedSymptoms([]);
     setSeverity("3");
     setSymptomNotes("");
     setSymptomOpen(false);
-    const { data } = await supabase.from("symptom_logs").select("symptoms, severity, logged_at").eq("user_id", user.id).order("logged_at");
-    if (data) setSymptomLogs(data);
+    const { data } = await supabase.from("symptom_logs" as any).select("symptoms, severity, logged_at").eq("user_id", user.id).order("logged_at");
+    if (data) setSymptomLogs(data as any);
   };
 
   const uploadPhoto = async (file: File) => {
