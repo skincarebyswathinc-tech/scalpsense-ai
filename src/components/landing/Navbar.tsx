@@ -22,7 +22,7 @@ const Navbar = () => {
 
         <div className="hidden md:flex items-center gap-3">
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/dashboard">Log In</Link>
+            <Link to="/auth">Log In</Link>
           </Button>
           <Button variant="hero" size="sm" asChild>
             <Link to="/quiz">Start Scalp Scan</Link>
