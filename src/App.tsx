@@ -10,6 +10,7 @@ import Report from "./pages/Report";
 import Protocol from "./pages/Protocol";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
+import ProgressPage from "./pages/Progress";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
