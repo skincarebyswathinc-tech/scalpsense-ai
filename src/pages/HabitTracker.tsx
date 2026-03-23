@@ -293,6 +293,7 @@ const HabitTracker = () => {
             </div>
           </CardContent>
         </Card>
+        </PremiumGate>
       </div>
     </div>
   );
