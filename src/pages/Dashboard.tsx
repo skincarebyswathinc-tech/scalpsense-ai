@@ -43,6 +43,7 @@ interface HairFallLog {
 
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
+  const { isPremium } = useSubscription();
   const navigate = useNavigate();
   const { toast } = useToast();
 
