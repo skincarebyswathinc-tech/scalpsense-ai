@@ -418,6 +418,7 @@ const PhotoTimeline = () => {
             </Card>
           </TabsContent>
         </Tabs>
+        </PremiumGate>
       </div>
     </div>
   );
