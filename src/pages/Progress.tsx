@@ -157,6 +157,7 @@ const Progress = () => {
           </div>
         </div>
 
+        <PremiumGate feature="Progress Tracking" blur>
         {/* Log buttons */}
         <div className="flex flex-wrap gap-3">
           <Dialog open={hairFallOpen} onOpenChange={setHairFallOpen}>
