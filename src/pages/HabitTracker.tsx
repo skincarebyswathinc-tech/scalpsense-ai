@@ -172,6 +172,7 @@ const HabitTracker = () => {
         </div>
 
         {/* Progress + Streak Row */}
+        <PremiumGate feature="Habit Tracker" blur>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Daily Progress */}
           <Card className="shadow-card">
