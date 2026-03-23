@@ -141,6 +141,7 @@ const PhotoTimeline = () => {
           </div>
         </div>
 
+        <PremiumGate feature="Photo Timeline" blur>
         {/* Upload Button */}
         <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
           <DialogTrigger asChild>
