@@ -374,6 +374,7 @@ const Progress = () => {
             </CardContent>
           </Card>
         )}
+        </PremiumGate>
       </div>
     </div>
   );
