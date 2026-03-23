@@ -234,7 +234,7 @@ const Dashboard = () => {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </PremiumGate>
 
         {/* Score Trend Chart */}
         {chartData.length > 1 && (
