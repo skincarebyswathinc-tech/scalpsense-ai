@@ -169,6 +169,7 @@ const Dashboard = () => {
         </div>
 
         {/* Scalp Recovery Score Hero Card */}
+        <PremiumGate feature="Scalp Recovery Score" blur>
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <Card className="shadow-elevated border-primary/20 bg-gradient-to-br from-card to-accent/20">
             <CardContent className="p-6 md:p-8">
