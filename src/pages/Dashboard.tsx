@@ -237,6 +237,7 @@ const Dashboard = () => {
         </PremiumGate>
 
         {/* Score Trend Chart */}
+        <PremiumGate feature="Score Trend" blur>
         {chartData.length > 1 && (
           <Card className="shadow-card">
             <CardHeader className="pb-2">
