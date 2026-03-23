@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
+import PremiumGate from "@/components/PremiumGate";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import Navbar from "@/components/landing/Navbar";
-import { Camera, TrendingDown, TrendingUp, BarChart3, Calendar, FileText, ClipboardList, Activity } from "lucide-react";
+import { Camera, TrendingDown, TrendingUp, BarChart3, Calendar, FileText, ClipboardList, Activity, Sparkles } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,6 +43,7 @@ interface HairFallLog {
 
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
+  const { isPremium } = useSubscription();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -165,7 +168,23 @@ const Dashboard = () => {
           <p className="text-muted-foreground font-body mt-1">Here's your scalp health overview.</p>
         </div>
 
+        {/* Upgrade Banner for Free Users */}
+        {!isPremium && (
+          <Card className="shadow-elevated border-primary/20 bg-gradient-to-r from-primary/5 to-accent/10">
+            <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <p className="font-display font-bold text-foreground">Unlock Your Full Scalp Recovery Plan</p>
+                <p className="font-body text-xs text-muted-foreground">Early intervention prevents long-term hair loss. Upgrade for ₹499/month.</p>
+              </div>
+              <Button variant="hero" asChild>
+                <Link to="/upgrade"><Sparkles className="mr-2 h-4 w-4" /> Upgrade</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Scalp Recovery Score Hero Card */}
+        <PremiumGate feature="Scalp Recovery Score" blur>
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <Card className="shadow-elevated border-primary/20 bg-gradient-to-br from-card to-accent/20">
             <CardContent className="p-6 md:p-8">
@@ -231,8 +250,10 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </motion.div>
+        </PremiumGate>
 
         {/* Score Trend Chart */}
+        <PremiumGate feature="Score Trend" blur>
         {chartData.length > 1 && (
           <Card className="shadow-card">
             <CardHeader className="pb-2">
@@ -251,6 +272,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         )}
+        </PremiumGate>
 
         {/* Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

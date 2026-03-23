@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import PremiumGate from "@/components/PremiumGate";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -156,6 +157,7 @@ const Progress = () => {
           </div>
         </div>
 
+        <PremiumGate feature="Progress Tracking" blur>
         {/* Log buttons */}
         <div className="flex flex-wrap gap-3">
           <Dialog open={hairFallOpen} onOpenChange={setHairFallOpen}>
@@ -372,6 +374,7 @@ const Progress = () => {
             </CardContent>
           </Card>
         )}
+        </PremiumGate>
       </div>
     </div>
   );
