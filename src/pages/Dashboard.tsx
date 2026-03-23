@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import Navbar from "@/components/landing/Navbar";
-import { Camera, TrendingDown, TrendingUp, BarChart3, Calendar, FileText, ClipboardList, Activity, Sparkles } from "lucide-react";
+import { Camera, TrendingDown, TrendingUp, BarChart3, Calendar, FileText, ClipboardList, Activity, Sparkles, Gift } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -323,6 +323,10 @@ const Dashboard = () => {
 
           <Button variant="outline" size="lg" asChild>
             <Link to="/progress"><BarChart3 className="mr-2 h-4 w-4" /> View Progress</Link>
+          </Button>
+
+          <Button variant="outline" size="lg" asChild>
+            <Link to="/referrals"><Gift className="mr-2 h-4 w-4" /> Refer & Earn</Link>
           </Button>
         </div>
 

@@ -32,7 +32,7 @@ const Auth = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data: signupData, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -44,6 +44,45 @@ const Auth = () => {
     if (error) {
       toast({ title: "Signup failed", description: error.message, variant: "destructive" });
     } else {
+      // Handle referral conversion
+      const refCode = localStorage.getItem("referred_by");
+      if (refCode && signupData?.user) {
+        // Look up referrer
+        const { data: refData } = await supabase
+          .from("referrals" as any)
+          .select("user_id")
+          .eq("referral_code", refCode)
+          .maybeSingle();
+
+        if (refData && (refData as any).user_id) {
+          const referrerUserId = (refData as any).user_id;
+          // Record conversion
+          await supabase.from("referral_conversions" as any).insert({
+            referral_code: refCode,
+            referred_user_id: signupData.user.id,
+            referrer_user_id: referrerUserId,
+          } as any);
+
+          // Extend referrer's premium by 7 days
+          const { data: sub } = await supabase
+            .from("subscriptions" as any)
+            .select("id, plan, expires_at")
+            .eq("user_id", referrerUserId)
+            .maybeSingle();
+
+          if (sub) {
+            const s = sub as any;
+            const currentExpiry = s.expires_at ? new Date(s.expires_at) : new Date();
+            const newExpiry = new Date(Math.max(currentExpiry.getTime(), Date.now()));
+            newExpiry.setDate(newExpiry.getDate() + 7);
+            await supabase.from("subscriptions" as any)
+              .update({ plan: "premium", expires_at: newExpiry.toISOString() } as any)
+              .eq("id", s.id);
+          }
+
+          localStorage.removeItem("referred_by");
+        }
+      }
       toast({ title: "Check your email", description: "We sent you a verification link to confirm your account." });
     }
   };
