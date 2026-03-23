@@ -41,6 +41,8 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       const isExpired = sub.expires_at && new Date(sub.expires_at) < new Date();
       setPlan(isExpired ? "free" : (sub.plan as Plan));
     } else {
+      // Auto-create free subscription for existing users
+      await supabase.from("subscriptions" as any).insert({ user_id: user.id, plan: "free", status: "active" } as any);
       setPlan("free");
     }
     setLoading(false);
