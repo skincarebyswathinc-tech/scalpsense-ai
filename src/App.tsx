@@ -39,6 +39,7 @@ const App = () => (
               <Route path="/habits" element={<HabitTracker />} />
               <Route path="/photos" element={<PhotoTimeline />} />
               <Route path="/upgrade" element={<Upgrade />} />
+              <Route path="/referrals" element={<Referrals />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
