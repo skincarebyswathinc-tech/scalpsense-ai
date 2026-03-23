@@ -14,10 +14,10 @@ const Navbar = () => {
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
-          <a href="#how-it-works" className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors">How It Works</a>
-          <a href="#why-it-matters" className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors">Why Scalp Health</a>
-          <a href="#testimonials" className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors">Testimonials</a>
-          <a href="#faq" className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
+          <a href="/#how-it-works" className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors">How It Works</a>
+          <a href="/#why-it-matters" className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors">Why Scalp Health</a>
+          <a href="/#testimonials" className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors">Testimonials</a>
+          <a href="/#faq" className="text-sm font-body text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
         </div>
 
         <div className="hidden md:flex items-center gap-3">
@@ -25,7 +25,7 @@ const Navbar = () => {
             <Link to="/auth">Log In</Link>
           </Button>
           <Button variant="hero" size="sm" asChild>
-            <Link to="/quiz">Start Scalp Scan</Link>
+            <Link to="/quiz">Start Free Scalp Test</Link>
           </Button>
         </div>
 
@@ -36,13 +36,18 @@ const Navbar = () => {
 
       {open && (
         <div className="md:hidden bg-background border-b border-border px-4 pb-4 space-y-3">
-          <a href="#how-it-works" className="block text-sm text-muted-foreground" onClick={() => setOpen(false)}>How It Works</a>
-          <a href="#why-it-matters" className="block text-sm text-muted-foreground" onClick={() => setOpen(false)}>Why Scalp Health</a>
-          <a href="#testimonials" className="block text-sm text-muted-foreground" onClick={() => setOpen(false)}>Testimonials</a>
-          <a href="#faq" className="block text-sm text-muted-foreground" onClick={() => setOpen(false)}>FAQ</a>
-          <Button variant="hero" size="sm" className="w-full" asChild>
-            <Link to="/quiz">Start Scalp Scan</Link>
-          </Button>
+          <a href="/#how-it-works" className="block text-sm text-muted-foreground" onClick={() => setOpen(false)}>How It Works</a>
+          <a href="/#why-it-matters" className="block text-sm text-muted-foreground" onClick={() => setOpen(false)}>Why Scalp Health</a>
+          <a href="/#testimonials" className="block text-sm text-muted-foreground" onClick={() => setOpen(false)}>Testimonials</a>
+          <a href="/#faq" className="block text-sm text-muted-foreground" onClick={() => setOpen(false)}>FAQ</a>
+          <div className="flex gap-2 pt-2">
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/auth" onClick={() => setOpen(false)}>Log In</Link>
+            </Button>
+            <Button variant="hero" size="sm" className="flex-1" asChild>
+              <Link to="/quiz" onClick={() => setOpen(false)}>Start Free Scalp Test</Link>
+            </Button>
+          </div>
         </div>
       )}
     </nav>
