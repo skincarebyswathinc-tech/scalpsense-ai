@@ -168,6 +168,21 @@ const Dashboard = () => {
           <p className="text-muted-foreground font-body mt-1">Here's your scalp health overview.</p>
         </div>
 
+        {/* Upgrade Banner for Free Users */}
+        {!isPremium && (
+          <Card className="shadow-elevated border-primary/20 bg-gradient-to-r from-primary/5 to-accent/10">
+            <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <p className="font-display font-bold text-foreground">Unlock Your Full Scalp Recovery Plan</p>
+                <p className="font-body text-xs text-muted-foreground">Early intervention prevents long-term hair loss. Upgrade for ₹499/month.</p>
+              </div>
+              <Button variant="hero" asChild>
+                <Link to="/upgrade"><Sparkles className="mr-2 h-4 w-4" /> Upgrade</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Scalp Recovery Score Hero Card */}
         <PremiumGate feature="Scalp Recovery Score" blur>
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
