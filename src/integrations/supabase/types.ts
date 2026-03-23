@@ -148,6 +148,33 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          clicks: number
+          conversions: number
+          created_at: string
+          id: string
+          referral_code: string
+          referrer_session_id: string
+        }
+        Insert: {
+          clicks?: number
+          conversions?: number
+          created_at?: string
+          id?: string
+          referral_code: string
+          referrer_session_id: string
+        }
+        Update: {
+          clicks?: number
+          conversions?: number
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referrer_session_id?: string
+        }
+        Relationships: []
+      }
       routine_tasks: {
         Row: {
           completed_at: string | null
