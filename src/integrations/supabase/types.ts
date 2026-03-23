@@ -148,6 +148,33 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_conversions: {
+        Row: {
+          created_at: string
+          id: string
+          referral_code: string
+          referred_user_id: string
+          referrer_user_id: string
+          reward_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referral_code: string
+          referred_user_id: string
+          referrer_user_id: string
+          reward_type?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_user_id?: string
+          referrer_user_id?: string
+          reward_type?: string
+        }
+        Relationships: []
+      }
       referrals: {
         Row: {
           clicks: number
@@ -156,6 +183,9 @@ export type Database = {
           id: string
           referral_code: string
           referrer_session_id: string
+          reward_applied: boolean
+          reward_days_earned: number
+          user_id: string | null
         }
         Insert: {
           clicks?: number
@@ -164,6 +194,9 @@ export type Database = {
           id?: string
           referral_code: string
           referrer_session_id: string
+          reward_applied?: boolean
+          reward_days_earned?: number
+          user_id?: string | null
         }
         Update: {
           clicks?: number
@@ -172,6 +205,9 @@ export type Database = {
           id?: string
           referral_code?: string
           referrer_session_id?: string
+          reward_applied?: boolean
+          reward_days_earned?: number
+          user_id?: string | null
         }
         Relationships: []
       }
