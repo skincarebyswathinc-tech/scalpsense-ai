@@ -91,11 +91,6 @@ const Report = () => {
   useEffect(() => {
     const ref = searchParams.get("ref");
     if (ref) {
-      supabase.from("referrals" as any)
-        .update({ clicks: undefined } as any) // we'll use RPC-style increment below
-        .eq("referral_code", ref);
-      // Simple increment via raw update — clicks tracking
-      supabase.rpc("increment_referral_clicks" as any, { code: ref }).catch(() => {});
       localStorage.setItem("referred_by", ref);
     }
   }, [searchParams]);
