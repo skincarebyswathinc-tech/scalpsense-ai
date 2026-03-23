@@ -324,6 +324,10 @@ const Dashboard = () => {
           <Button variant="outline" size="lg" asChild>
             <Link to="/progress"><BarChart3 className="mr-2 h-4 w-4" /> View Progress</Link>
           </Button>
+
+          <Button variant="outline" size="lg" asChild>
+            <Link to="/referrals"><Gift className="mr-2 h-4 w-4" /> Refer & Earn</Link>
+          </Button>
         </div>
 
         {/* Two-column layout */}
