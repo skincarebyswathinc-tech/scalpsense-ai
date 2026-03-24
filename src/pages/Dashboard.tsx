@@ -18,6 +18,7 @@ import { calculateAndSaveScore, fetchAllScores, type WeeklyScore } from "@/lib/s
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { motion } from "framer-motion";
 import RecommendedProducts from "@/components/dashboard/RecommendedProducts";
+import RecoveryKits from "@/components/dashboard/RecoveryKits";
 
 interface RoutineTask {
   id: string;
