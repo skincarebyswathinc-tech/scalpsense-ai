@@ -45,6 +45,8 @@ const App = () => (
               <Route path="/referrals" element={<Referrals />} />
               <Route path="/recommendations" element={<Recommendations />} />
               <Route path="/admin/products" element={<AdminProducts />} />
+              <Route path="/kits" element={<KitsPage />} />
+              <Route path="/kits/:slug" element={<KitsPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
