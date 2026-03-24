@@ -58,7 +58,7 @@ const HeroSection = () => {
               </Button>
             </div>
             <p className="text-sm text-muted-foreground font-body">
-              ✦ 100% Free • No account needed • Results in 60 seconds
+              ✦ 100% Free • No account needed • 30-day money-back guarantee
             </p>
 
             {/* Trust badges */}
