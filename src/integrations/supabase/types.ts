@@ -100,6 +100,42 @@ export type Database = {
         }
         Relationships: []
       }
+      kit_products: {
+        Row: {
+          id: string
+          kit_id: string
+          product_id: string
+          sort_order: number
+        }
+        Insert: {
+          id?: string
+          kit_id: string
+          product_id: string
+          sort_order?: number
+        }
+        Update: {
+          id?: string
+          kit_id?: string
+          product_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kit_products_kit_id_fkey"
+            columns: ["kit_id"]
+            isOneToOne: false
+            referencedRelation: "product_kits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kit_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           created_at: string
@@ -161,6 +197,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      product_kits: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          price_amount: number | null
+          price_display: string | null
+          routine_plan: string | null
+          slug: string
+          sort_order: number
+          tagline: string | null
+          target_scalp_types: string[] | null
+          target_symptoms: string[] | null
+          usage_guide: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          price_amount?: number | null
+          price_display?: string | null
+          routine_plan?: string | null
+          slug: string
+          sort_order?: number
+          tagline?: string | null
+          target_scalp_types?: string[] | null
+          target_symptoms?: string[] | null
+          usage_guide?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          price_amount?: number | null
+          price_display?: string | null
+          routine_plan?: string | null
+          slug?: string
+          sort_order?: number
+          tagline?: string | null
+          target_scalp_types?: string[] | null
+          target_symptoms?: string[] | null
+          usage_guide?: string | null
+        }
+        Relationships: []
       }
       products: {
         Row: {
