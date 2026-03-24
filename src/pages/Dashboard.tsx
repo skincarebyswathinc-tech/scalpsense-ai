@@ -405,6 +405,9 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
+        {/* Recommended Products */}
+        <RecommendedProducts />
+
         {/* Recent Hair Fall Logs */}
         {hairLogs.length > 0 && (
           <Card className="shadow-card">

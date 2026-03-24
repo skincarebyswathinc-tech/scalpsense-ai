@@ -42,6 +42,8 @@ const App = () => (
               <Route path="/photos" element={<PhotoTimeline />} />
               <Route path="/upgrade" element={<Upgrade />} />
               <Route path="/referrals" element={<Referrals />} />
+              <Route path="/recommendations" element={<Recommendations />} />
+              <Route path="/admin/products" element={<AdminProducts />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
