@@ -92,8 +92,8 @@ const HeroSection = () => {
                 transition={{ delay: 0.8, duration: 0.5 }}
                 className="absolute -bottom-4 -left-4 bg-card border border-border rounded-xl shadow-elevated px-4 py-3"
               >
-                <p className="text-2xl font-display font-bold text-primary">92%</p>
-                <p className="text-xs font-body text-muted-foreground">see visible improvement</p>
+                <p className="text-2xl font-display font-bold text-primary">82%</p>
+                <p className="text-xs font-body text-muted-foreground">improved in 6 weeks</p>
               </motion.div>
             </div>
           </motion.div>
