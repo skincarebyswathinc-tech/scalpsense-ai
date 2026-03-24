@@ -18,6 +18,7 @@ import Upgrade from "./pages/Upgrade";
 import Referrals from "./pages/Referrals";
 import Recommendations from "./pages/Recommendations";
 import AdminProducts from "./pages/AdminProducts";
+import KitsPage from "./pages/Kits";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
