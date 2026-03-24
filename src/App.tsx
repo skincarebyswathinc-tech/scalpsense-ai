@@ -16,6 +16,8 @@ import HabitTracker from "./pages/HabitTracker";
 import PhotoTimeline from "./pages/PhotoTimeline";
 import Upgrade from "./pages/Upgrade";
 import Referrals from "./pages/Referrals";
+import Recommendations from "./pages/Recommendations";
+import AdminProducts from "./pages/AdminProducts";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
