@@ -18,6 +18,7 @@ import Upgrade from "./pages/Upgrade";
 import Referrals from "./pages/Referrals";
 import Recommendations from "./pages/Recommendations";
 import AdminProducts from "./pages/AdminProducts";
+import AdminDashboard from "./pages/AdminDashboard";
 import KitsPage from "./pages/Kits";
 import NotFound from "./pages/NotFound";
 
@@ -44,6 +45,7 @@ const App = () => (
               <Route path="/upgrade" element={<Upgrade />} />
               <Route path="/referrals" element={<Referrals />} />
               <Route path="/recommendations" element={<Recommendations />} />
+              <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/products" element={<AdminProducts />} />
               <Route path="/kits" element={<KitsPage />} />
               <Route path="/kits/:slug" element={<KitsPage />} />
