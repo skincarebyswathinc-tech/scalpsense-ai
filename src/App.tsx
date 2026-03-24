@@ -45,6 +45,7 @@ const App = () => (
               <Route path="/upgrade" element={<Upgrade />} />
               <Route path="/referrals" element={<Referrals />} />
               <Route path="/recommendations" element={<Recommendations />} />
+              <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/products" element={<AdminProducts />} />
               <Route path="/kits" element={<KitsPage />} />
               <Route path="/kits/:slug" element={<KitsPage />} />
