@@ -16,6 +16,8 @@ import HabitTracker from "./pages/HabitTracker";
 import PhotoTimeline from "./pages/PhotoTimeline";
 import Upgrade from "./pages/Upgrade";
 import Referrals from "./pages/Referrals";
+import Recommendations from "./pages/Recommendations";
+import AdminProducts from "./pages/AdminProducts";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +42,8 @@ const App = () => (
               <Route path="/photos" element={<PhotoTimeline />} />
               <Route path="/upgrade" element={<Upgrade />} />
               <Route path="/referrals" element={<Referrals />} />
+              <Route path="/recommendations" element={<Recommendations />} />
+              <Route path="/admin/products" element={<AdminProducts />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

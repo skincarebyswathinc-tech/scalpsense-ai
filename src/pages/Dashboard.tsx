@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { calculateAndSaveScore, fetchAllScores, type WeeklyScore } from "@/lib/scoreCalculator";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { motion } from "framer-motion";
+import RecommendedProducts from "@/components/dashboard/RecommendedProducts";
 
 interface RoutineTask {
   id: string;
@@ -403,6 +404,9 @@ const Dashboard = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Recommended Products */}
+        <RecommendedProducts />
 
         {/* Recent Hair Fall Logs */}
         {hairLogs.length > 0 && (

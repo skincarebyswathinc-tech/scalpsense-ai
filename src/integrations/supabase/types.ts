@@ -127,6 +127,95 @@ export type Database = {
         }
         Relationships: []
       }
+      product_clicks: {
+        Row: {
+          click_type: string
+          created_at: string
+          id: string
+          product_id: string
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          click_type?: string
+          created_at?: string
+          id?: string
+          product_id: string
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          click_type?: string
+          created_at?: string
+          id?: string
+          product_id?: string
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_clicks_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          brand: string | null
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          price_display: string | null
+          purchase_url: string | null
+          sort_order: number
+          target_scalp_types: string[] | null
+          target_symptoms: string[] | null
+          tier: string
+          updated_at: string
+        }
+        Insert: {
+          brand?: string | null
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          price_display?: string | null
+          purchase_url?: string | null
+          sort_order?: number
+          target_scalp_types?: string[] | null
+          target_symptoms?: string[] | null
+          tier: string
+          updated_at?: string
+        }
+        Update: {
+          brand?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          price_display?: string | null
+          purchase_url?: string | null
+          sort_order?: number
+          target_scalp_types?: string[] | null
+          target_symptoms?: string[] | null
+          tier?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -448,14 +537,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "user"
       scalp_feel: "dry" | "balanced" | "slightly_oily" | "very_oily"
       shedding_level: "less_than_50" | "50_100" | "100_150" | "150_plus"
       stress_level: "low" | "medium" | "high"
@@ -586,6 +700,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "user"],
       scalp_feel: ["dry", "balanced", "slightly_oily", "very_oily"],
       shedding_level: ["less_than_50", "50_100", "100_150", "150_plus"],
       stress_level: ["low", "medium", "high"],
