@@ -6,7 +6,7 @@ import { Shield, Users, Award, Clock } from "lucide-react";
 
 const stats = [
   { value: "50K+", label: "Scalp Tests Taken" },
-  { value: "92%", label: "See Improvement" },
+  { value: "82%", label: "Saw Improvement in 6 Weeks" },
   { value: "60s", label: "Quick Assessment" },
 ];
 
