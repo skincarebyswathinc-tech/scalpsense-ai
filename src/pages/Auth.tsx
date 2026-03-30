@@ -19,6 +19,14 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const handleGoogleSignIn = async () => {
+    const { error } = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (error) {
+      toast({ title: "Google sign-in failed", description: String(error), variant: "destructive" });
+    }
+  };
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
