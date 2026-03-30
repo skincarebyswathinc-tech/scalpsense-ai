@@ -29,8 +29,18 @@ const Auth = () => {
     }
   };
 
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!passwordRegex.test(password)) {
+      toast({
+        title: "Weak password",
+        description: "Must be 8+ chars with uppercase, lowercase, number, and special character.",
+        variant: "destructive",
+      });
+      return;
+    }
     setLoading(true);
     const { data: signupData, error } = await supabase.auth.signUp({
       email,
