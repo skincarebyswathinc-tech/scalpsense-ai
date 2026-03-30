@@ -1,0 +1,22 @@
+{
+  "name": "ScalpSense",
+  "short_name": "ScalpSense",
+  "description": "Track your scalp health journey with personalized assessments and recommendations",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f5f0",
+  "theme_color": "#7b9b8d",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
