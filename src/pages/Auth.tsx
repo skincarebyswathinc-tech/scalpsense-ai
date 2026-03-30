@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
@@ -149,6 +149,11 @@ const Auth = () => {
                   <Button type="submit" variant="hero" className="w-full" disabled={loading}>
                     {loading ? "Signing in…" : "Log In"}
                   </Button>
+                  <div className="text-center">
+                    <Link to="/forgot-password" className="text-sm text-primary hover:underline">
+                      Forgot your password?
+                    </Link>
+                  </div>
                 </form>
               </TabsContent>
 

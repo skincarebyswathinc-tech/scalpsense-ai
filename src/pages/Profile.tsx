@@ -10,8 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
-import { User, Mail, Calendar, Activity, Crown, Pencil, Save, Loader2, AlertTriangle } from "lucide-react";
+import { User, Mail, Calendar, Activity, Crown, Pencil, Save, Loader2, AlertTriangle, KeyRound } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Link } from "react-router-dom";
 
 const Profile = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -149,6 +150,17 @@ const Profile = () => {
                 </div>
               ))}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Actions */}
+        <Card className="shadow-card">
+          <CardContent className="p-6 space-y-4">
+            <Button variant="outline" className="w-full justify-start gap-2" asChild>
+              <Link to="/forgot-password">
+                <KeyRound className="h-4 w-4" /> Change Password
+              </Link>
+            </Button>
           </CardContent>
         </Card>
 
