@@ -211,9 +211,14 @@ const AdminDashboard = () => {
             <h1 className="font-display text-3xl font-bold text-foreground">Admin Dashboard</h1>
             <p className="text-muted-foreground font-body text-sm mt-1">Business metrics and analytics at a glance.</p>
           </div>
-          <Button variant="outline" asChild>
-            <Link to="/admin/products"><Package className="mr-2 h-4 w-4" /> Manage Products</Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <Link to="/admin/products"><Package className="mr-2 h-4 w-4" /> Products</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/admin/quizzes"><BarChart3 className="mr-2 h-4 w-4" /> Quizzes</Link>
+            </Button>
+          </div>
         </div>
 
         {/* Stat Cards */}
