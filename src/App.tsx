@@ -19,6 +19,8 @@ import Referrals from "./pages/Referrals";
 import Recommendations from "./pages/Recommendations";
 import AdminProducts from "./pages/AdminProducts";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminQuizzes from "./pages/AdminQuizzes";
+import Profile from "./pages/Profile";
 import KitsPage from "./pages/Kits";
 import NotFound from "./pages/NotFound";
 
