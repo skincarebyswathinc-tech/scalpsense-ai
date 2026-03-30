@@ -153,6 +153,17 @@ const Profile = () => {
           </CardContent>
         </Card>
 
+        {/* Actions */}
+        <Card className="shadow-card">
+          <CardContent className="p-6 space-y-4">
+            <Button variant="outline" className="w-full justify-start gap-2" asChild>
+              <Link to="/forgot-password">
+                <KeyRound className="h-4 w-4" /> Change Password
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* Danger Zone */}
         <Card className="shadow-card border-destructive/20">
           <CardContent className="p-6 flex items-center justify-between">
