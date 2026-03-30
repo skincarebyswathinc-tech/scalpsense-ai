@@ -10,8 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
-import { User, Mail, Calendar, Activity, Crown, Pencil, Save, Loader2, AlertTriangle } from "lucide-react";
+import { User, Mail, Calendar, Activity, Crown, Pencil, Save, Loader2, AlertTriangle, KeyRound } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Link } from "react-router-dom";
 
 const Profile = () => {
   const { user, loading: authLoading, signOut } = useAuth();
