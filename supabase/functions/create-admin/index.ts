@@ -6,31 +6,26 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
-  const { email, password, display_name } = await req.json();
+  const { email } = await req.json();
 
-  // Create user
-  const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: { display_name },
-  });
+  // Find user by email
+  const { data: { users }, error: listErr } = await supabaseAdmin.auth.admin.listUsers();
+  if (listErr) return new Response(JSON.stringify({ error: listErr.message }), { status: 400 });
 
-  if (createError) {
-    return new Response(JSON.stringify({ error: createError.message }), { status: 400 });
-  }
+  const user = users.find(u => u.email === email);
+  if (!user) return new Response(JSON.stringify({ error: "User not found" }), { status: 404 });
 
-  const userId = userData.user.id;
+  // Check if already admin
+  const { data: existing } = await supabaseAdmin.from("user_roles").select("id").eq("user_id", user.id).eq("role", "admin").maybeSingle();
+  if (existing) return new Response(JSON.stringify({ success: true, user_id: user.id, note: "already admin" }));
 
   // Assign admin role
   const { error: roleError } = await supabaseAdmin.from("user_roles").insert({
-    user_id: userId,
+    user_id: user.id,
     role: "admin",
   });
 
-  if (roleError) {
-    return new Response(JSON.stringify({ error: roleError.message }), { status: 400 });
-  }
+  if (roleError) return new Response(JSON.stringify({ error: roleError.message }), { status: 400 });
 
-  return new Response(JSON.stringify({ success: true, user_id: userId }), { status: 200 });
+  return new Response(JSON.stringify({ success: true, user_id: user.id }));
 });
