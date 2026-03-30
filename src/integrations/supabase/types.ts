@@ -262,8 +262,11 @@ export type Database = {
           image_url: string | null
           is_active: boolean
           name: string
+          payment_link: string | null
           price_display: string | null
+          product_type: string
           purchase_url: string | null
+          quantity: number | null
           sort_order: number
           target_scalp_types: string[] | null
           target_symptoms: string[] | null
@@ -279,8 +282,11 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           name: string
+          payment_link?: string | null
           price_display?: string | null
+          product_type?: string
           purchase_url?: string | null
+          quantity?: number | null
           sort_order?: number
           target_scalp_types?: string[] | null
           target_symptoms?: string[] | null
@@ -296,8 +302,11 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           name?: string
+          payment_link?: string | null
           price_display?: string | null
+          product_type?: string
           purchase_url?: string | null
+          quantity?: number | null
           sort_order?: number
           target_scalp_types?: string[] | null
           target_symptoms?: string[] | null
@@ -310,20 +319,106 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          deactivated_at: string | null
           display_name: string | null
           id: string
+          is_active: boolean
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          deactivated_at?: string | null
           display_name?: string | null
           id: string
+          is_active?: boolean
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
+          deactivated_at?: string | null
           display_name?: string | null
           id?: string
+          is_active?: boolean
+        }
+        Relationships: []
+      }
+      quiz_questions: {
+        Row: {
+          correct_answer: string
+          created_at: string
+          explanation: string | null
+          id: string
+          options: Json
+          question_text: string
+          quiz_id: string
+          sort_order: number
+        }
+        Insert: {
+          correct_answer: string
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          options?: Json
+          question_text: string
+          quiz_id: string
+          sort_order?: number
+        }
+        Update: {
+          correct_answer?: string
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          options?: Json
+          question_text?: string
+          quiz_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_questions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quizzes: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          difficulty: string
+          id: string
+          is_active: boolean
+          title: string
+          topic: string | null
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          difficulty?: string
+          id?: string
+          is_active?: boolean
+          title: string
+          topic?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          difficulty?: string
+          id?: string
+          is_active?: boolean
+          title?: string
+          topic?: string | null
+          updated_at?: string
+          version?: number
         }
         Relationships: []
       }
