@@ -53,6 +53,8 @@ const App = () => (
               <Route path="/admin/products" element={<AdminProducts />} />
               <Route path="/admin/quizzes" element={<AdminQuizzes />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/kits" element={<KitsPage />} />
               <Route path="/kits/:slug" element={<KitsPage />} />
               <Route path="*" element={<NotFound />} />
