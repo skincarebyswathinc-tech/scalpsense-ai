@@ -611,6 +611,42 @@ export type Database = {
         }
         Relationships: []
       }
+      scalp_quiz_config: {
+        Row: {
+          config_key: string
+          created_at: string
+          id: string
+          is_active: boolean
+          scoring: Json
+          steps: Json
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }
+        Insert: {
+          config_key?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          scoring?: Json
+          steps?: Json
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Update: {
+          config_key?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          scoring?: Json
+          steps?: Json
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Relationships: []
+      }
       scalp_recovery_scores: {
         Row: {
           calculated_at: string
