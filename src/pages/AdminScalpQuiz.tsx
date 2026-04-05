@@ -71,6 +71,40 @@ const AdminScalpQuiz = () => {
     setSteps(prev => prev.map((s, i) => i === idx ? { ...s, [field]: value } : s));
   };
 
+  const addStep = (type: "radio" | "checkbox" | "photo_upload" | "lifestyle_group") => {
+    const baseStep: QuizStep = {
+      key: `step_${Date.now()}`,
+      title: "New Step",
+      subtitle: "",
+      type,
+      required: false,
+      description: "",
+    };
+    if (type === "radio" || type === "checkbox") {
+      baseStep.db_column = "";
+      baseStep.options = [{ value: "", label: "" }];
+    } else if (type === "photo_upload") {
+      baseStep.fields = [{ key: `photo_${Date.now()}`, label: "Photo", db_column: "" }];
+    } else if (type === "lifestyle_group") {
+      baseStep.fields = [];
+    }
+    setSteps(prev => [...prev, baseStep]);
+  };
+
+  const removeStep = (idx: number) => {
+    setSteps(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const moveStep = (idx: number, dir: -1 | 1) => {
+    const target = idx + dir;
+    if (target < 0 || target >= steps.length) return;
+    setSteps(prev => {
+      const arr = [...prev];
+      [arr[idx], arr[target]] = [arr[target], arr[idx]];
+      return arr;
+    });
+  };
+
   const addOptionToStep = (stepIdx: number) => {
     setSteps(prev => prev.map((s, i) => {
       if (i !== stepIdx || !s.options) return s;
@@ -152,6 +186,27 @@ const AdminScalpQuiz = () => {
 
           {/* ─── Steps Tab ────────────────────── */}
           <TabsContent value="steps" className="space-y-6">
+            {/* Add Step Buttons */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-medium text-muted-foreground mr-2">Add new step:</span>
+                  <Button size="sm" variant="outline" onClick={() => addStep("radio")}>
+                    <Plus className="h-3 w-3 mr-1" /> Radio
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => addStep("checkbox")}>
+                    <Plus className="h-3 w-3 mr-1" /> Checkbox
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => addStep("photo_upload")}>
+                    <Plus className="h-3 w-3 mr-1" /> Photo Upload
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => addStep("lifestyle_group")}>
+                    <Plus className="h-3 w-3 mr-1" /> Lifestyle Group
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
             {steps.map((step, idx) => (
               <Card key={idx}>
                 <CardHeader className="pb-3">
@@ -160,6 +215,17 @@ const AdminScalpQuiz = () => {
                       <Badge variant="outline">Step {idx + 1}</Badge>
                       <Badge>{step.type}</Badge>
                       {step.required && <Badge variant="destructive">Required</Badge>}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button size="icon" variant="ghost" onClick={() => moveStep(idx, -1)} disabled={idx === 0}>
+                        <ArrowLeft className="h-3 w-3" />
+                      </Button>
+                      <Button size="icon" variant="ghost" onClick={() => moveStep(idx, 1)} disabled={idx === steps.length - 1}>
+                        <ArrowRight className="h-3 w-3" />
+                      </Button>
+                      <Button size="icon" variant="ghost" onClick={() => removeStep(idx)}>
+                        <Trash2 className="h-3 w-3 text-destructive" />
+                      </Button>
                     </div>
                   </div>
                 </CardHeader>
@@ -174,6 +240,38 @@ const AdminScalpQuiz = () => {
                       <Input value={step.subtitle} onChange={e => updateStepField(idx, "subtitle", e.target.value)} />
                     </div>
                   </div>
+
+                  {/* Description */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">Description (optional)</Label>
+                    <Textarea
+                      placeholder="Add a longer description or instructions for this step..."
+                      value={(step as any).description || ""}
+                      onChange={e => updateStepField(idx, "description", e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+
+                  {/* Required toggle */}
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={step.required}
+                      onCheckedChange={v => updateStepField(idx, "required", v)}
+                    />
+                    <Label className="text-xs">Required step</Label>
+                  </div>
+
+                  {/* DB column for radio/checkbox */}
+                  {(step.type === "radio" || step.type === "checkbox") && (
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">DB Column</Label>
+                      <Input
+                        placeholder="e.g. hair_shedding"
+                        value={step.db_column || ""}
+                        onChange={e => updateStepField(idx, "db_column", e.target.value)}
+                      />
+                    </div>
+                  )}
 
                   {/* Options for radio/checkbox steps */}
                   {(step.type === "radio" || step.type === "checkbox") && step.options && (
