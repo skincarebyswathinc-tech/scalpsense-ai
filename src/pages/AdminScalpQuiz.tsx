@@ -16,7 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/landing/Navbar";
 import {
-  Settings2, Save, Plus, Trash2, GripVertical, ArrowLeft,
+  Settings2, Save, Plus, Trash2, GripVertical, ArrowLeft, ArrowRight,
   AlertTriangle, CheckCircle, Loader2, Eye,
 } from "lucide-react";
 
