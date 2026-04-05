@@ -8,127 +8,112 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useQuizConfig, QuizStep, QuizField, PhotoField } from "@/hooks/useQuizConfig";
 import { Upload, Camera, ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
-
-const TOTAL_STEPS = 6;
-
-const SYMPTOMS = [
-  "White flakes",
-  "Yellow flakes",
-  "Itch",
-  "Redness",
-  "Scalp pimples",
-  "Burning sensation",
-];
-
-const HAIR_CHANGES = [
-  "Thinning hairline",
-  "Widening part line",
-  "Reduced ponytail thickness",
-  "Sudden hair fall",
-];
-
-type SheddingLevel = "less_than_50" | "50_100" | "100_150" | "150_plus";
-type ScalpFeel = "dry" | "balanced" | "slightly_oily" | "very_oily";
-type StressLevel = "low" | "medium" | "high";
-
-interface QuizData {
-  hairShedding: SheddingLevel | "";
-  scalpFeel: ScalpFeel | "";
-  symptoms: string[];
-  hairChanges: string[];
-  stressLevel: StressLevel | "";
-  sleepHours: number;
-  proteinIntake: string;
-  hairStylingFrequency: string;
-  hairColoringTreatments: string;
-  photoFrontScalp: File | null;
-  photoTopScalp: File | null;
-  photoCrown: File | null;
-}
+import { Skeleton } from "@/components/ui/skeleton";
 
 const QuizFlow = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [step, setStep] = useState(1);
+  const { data: config, isLoading, error } = useQuizConfig();
+  const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
-  const [data, setData] = useState<QuizData>({
-    hairShedding: "",
-    scalpFeel: "",
-    symptoms: [],
-    hairChanges: [],
-    stressLevel: "",
-    sleepHours: 7,
-    proteinIntake: "",
-    hairStylingFrequency: "",
-    hairColoringTreatments: "",
-    photoFrontScalp: null,
-    photoTopScalp: null,
-    photoCrown: null,
-  });
+  const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [photos, setPhotos] = useState<Record<string, File | null>>({});
 
-  const progress = (step / TOTAL_STEPS) * 100;
+  if (isLoading) {
+    return (
+      <div className="max-w-lg mx-auto space-y-6">
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-8 w-2/3" />
+        <Skeleton className="h-4 w-full" />
+        {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-14 w-full rounded-xl" />)}
+      </div>
+    );
+  }
 
-  const canProceed = useCallback(() => {
-    switch (step) {
-      case 1: return data.hairShedding !== "";
-      case 2: return data.scalpFeel !== "";
-      case 3: return true; // optional
-      case 4: return true; // optional
-      case 5: return data.stressLevel !== "" && data.sleepHours > 0;
-      case 6: return true; // photos optional
-      default: return false;
+  if (error || !config) {
+    return (
+      <div className="max-w-lg mx-auto text-center py-12 space-y-4">
+        <p className="text-destructive font-medium">Failed to load quiz configuration.</p>
+        <Button variant="outline" onClick={() => window.location.reload()}>Retry</Button>
+      </div>
+    );
+  }
+
+  const steps = config.steps;
+  const totalSteps = steps.length;
+  const currentStep = steps[step];
+  const progress = ((step + 1) / totalSteps) * 100;
+
+  const setAnswer = (key: string, value: any) => setAnswers(prev => ({ ...prev, [key]: value }));
+
+  const toggleArrayItem = (key: string, item: string) => {
+    const arr: string[] = answers[key] || [];
+    setAnswer(key, arr.includes(item) ? arr.filter(i => i !== item) : [...arr, item]);
+  };
+
+  const canProceed = (): boolean => {
+    if (!currentStep) return false;
+    if (!currentStep.required) return true;
+
+    if (currentStep.type === "radio") {
+      return !!answers[currentStep.key];
     }
-  }, [step, data]);
-
-  const toggleArrayItem = (arr: string[], item: string) =>
-    arr.includes(item) ? arr.filter((i) => i !== item) : [...arr, item];
+    if (currentStep.type === "lifestyle_group" && currentStep.fields) {
+      return (currentStep.fields as QuizField[])
+        .filter(f => f.required)
+        .every(f => {
+          const v = answers[f.key];
+          return v !== undefined && v !== "" && v !== null;
+        });
+    }
+    return true;
+  };
 
   const uploadPhoto = async (file: File, path: string) => {
-    const { data: uploadData, error } = await supabase.storage
+    const { data, error } = await supabase.storage
       .from("scalp-photos")
       .upload(path, file, { upsert: true });
     if (error) throw error;
-    return uploadData.path;
+    return data.path;
   };
 
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
       const sessionId = crypto.randomUUID();
-      let photoFrontScalp: string | null = null;
-      let photoTopScalp: string | null = null;
-      let photoCrown: string | null = null;
+      const insertData: Record<string, any> = { session_id: sessionId };
 
-      if (data.photoFrontScalp) {
-        photoFrontScalp = await uploadPhoto(data.photoFrontScalp, `${sessionId}/front.jpg`);
-      }
-      if (data.photoTopScalp) {
-        photoTopScalp = await uploadPhoto(data.photoTopScalp, `${sessionId}/top.jpg`);
-      }
-      if (data.photoCrown) {
-        photoCrown = await uploadPhoto(data.photoCrown, `${sessionId}/crown.jpg`);
+      // Map answers to DB columns
+      for (const s of steps) {
+        if (s.type === "radio" || s.type === "checkbox") {
+          if (s.db_column && answers[s.key] !== undefined) {
+            insertData[s.db_column] = answers[s.key] || (s.type === "checkbox" ? [] : null);
+          }
+        } else if (s.type === "lifestyle_group" && s.fields) {
+          for (const f of s.fields as QuizField[]) {
+            if (f.db_column && answers[f.key] !== undefined) {
+              insertData[f.db_column] = answers[f.key] || null;
+            }
+          }
+        } else if (s.type === "photo_upload" && s.fields) {
+          for (const f of s.fields as PhotoField[]) {
+            const file = photos[f.key];
+            if (file && f.db_column) {
+              insertData[f.db_column] = await uploadPhoto(file, `${sessionId}/${f.key}.jpg`);
+            }
+          }
+        }
       }
 
-      const { error } = await supabase.from("scalp_assessments").insert({
-        session_id: sessionId,
-        hair_shedding: data.hairShedding as SheddingLevel,
-        scalp_feel: data.scalpFeel as ScalpFeel,
-        stress_level: data.stressLevel as StressLevel,
-        sleep_hours: data.sleepHours,
-        symptoms: data.symptoms,
-        hair_changes: data.hairChanges,
-        protein_intake: data.proteinIntake || null,
-        hair_styling_frequency: data.hairStylingFrequency || null,
-        hair_coloring_treatments: data.hairColoringTreatments || null,
-        photo_front_scalp: photoFrontScalp,
-        photo_top_scalp: photoTopScalp,
-        photo_crown: photoCrown,
-      });
+      // Ensure required DB fields have defaults
+      if (!insertData.symptoms) insertData.symptoms = [];
+      if (!insertData.hair_changes) insertData.hair_changes = [];
 
+      const { error } = await supabase.from("scalp_assessments").insert(insertData as any);
       if (error) throw error;
 
       localStorage.setItem("scalp_session_id", sessionId);
@@ -141,15 +126,7 @@ const QuizFlow = () => {
     }
   };
 
-  const FileUploadBox = ({
-    label,
-    file,
-    onSelect,
-  }: {
-    label: string;
-    file: File | null;
-    onSelect: (f: File) => void;
-  }) => (
+  const FileUploadBox = ({ label, file, onSelect }: { label: string; file: File | null; onSelect: (f: File) => void }) => (
     <label className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted/40 p-6 cursor-pointer hover:border-primary/60 transition-colors">
       {file ? (
         <span className="text-sm font-medium text-foreground">{file.name}</span>
@@ -159,176 +136,103 @@ const QuizFlow = () => {
           <span className="text-sm text-muted-foreground">{label}</span>
         </>
       )}
-      <input
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => e.target.files?.[0] && onSelect(e.target.files[0])}
-      />
+      <input type="file" accept="image/*" className="hidden" onChange={e => e.target.files?.[0] && onSelect(e.target.files[0])} />
     </label>
   );
 
-  const stepContent = () => {
-    const variants = {
-      enter: { opacity: 0, x: 40 },
-      center: { opacity: 1, x: 0 },
-      exit: { opacity: 0, x: -40 },
-    };
+  const variants = { enter: { opacity: 0, x: 40 }, center: { opacity: 1, x: 0 }, exit: { opacity: 0, x: -40 } };
 
-    switch (step) {
-      case 1:
+  const renderStep = (s: QuizStep) => {
+    switch (s.type) {
+      case "radio":
         return (
-          <motion.div key="step1" variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="space-y-6">
+          <motion.div key={s.key} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="space-y-6">
             <div>
-              <h2 className="font-display text-2xl font-bold text-foreground">Hair Shedding</h2>
-              <p className="text-muted-foreground mt-1">How many hairs do you shed per day on average?</p>
+              <h2 className="font-display text-2xl font-bold text-foreground">{s.title}</h2>
+              <p className="text-muted-foreground mt-1">{s.subtitle}</p>
             </div>
-            <RadioGroup value={data.hairShedding} onValueChange={(v) => setData({ ...data, hairShedding: v as SheddingLevel })}>
-              {([["less_than_50", "Less than 50"], ["50_100", "50–100"], ["100_150", "100–150"], ["150_plus", "150+"]] as const).map(([val, label]) => (
-                <label key={val} className={`flex items-center gap-3 rounded-xl border-2 p-4 cursor-pointer transition-all ${data.hairShedding === val ? "border-primary bg-accent" : "border-border hover:border-primary/40"}`}>
-                  <RadioGroupItem value={val} id={val} />
-                  <Label htmlFor={val} className="cursor-pointer text-base font-medium">{label}</Label>
+            <RadioGroup value={answers[s.key] || ""} onValueChange={v => setAnswer(s.key, v)}>
+              {s.options?.map(opt => (
+                <label key={opt.value} className={`flex items-center gap-3 rounded-xl border-2 p-4 cursor-pointer transition-all ${answers[s.key] === opt.value ? "border-primary bg-accent" : "border-border hover:border-primary/40"}`}>
+                  <RadioGroupItem value={opt.value} id={opt.value} />
+                  <Label htmlFor={opt.value} className="cursor-pointer text-base font-medium">{opt.label}</Label>
                 </label>
               ))}
             </RadioGroup>
           </motion.div>
         );
-      case 2:
+
+      case "checkbox":
         return (
-          <motion.div key="step2" variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="space-y-6">
+          <motion.div key={s.key} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="space-y-6">
             <div>
-              <h2 className="font-display text-2xl font-bold text-foreground">Scalp Feel</h2>
-              <p className="text-muted-foreground mt-1">How does your scalp feel 24 hours after washing?</p>
-            </div>
-            <RadioGroup value={data.scalpFeel} onValueChange={(v) => setData({ ...data, scalpFeel: v as ScalpFeel })}>
-              {([["dry", "Dry"], ["balanced", "Balanced"], ["slightly_oily", "Slightly Oily"], ["very_oily", "Very Oily"]] as const).map(([val, label]) => (
-                <label key={val} className={`flex items-center gap-3 rounded-xl border-2 p-4 cursor-pointer transition-all ${data.scalpFeel === val ? "border-primary bg-accent" : "border-border hover:border-primary/40"}`}>
-                  <RadioGroupItem value={val} id={val} />
-                  <Label htmlFor={val} className="cursor-pointer text-base font-medium">{label}</Label>
-                </label>
-              ))}
-            </RadioGroup>
-          </motion.div>
-        );
-      case 3:
-        return (
-          <motion.div key="step3" variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="space-y-6">
-            <div>
-              <h2 className="font-display text-2xl font-bold text-foreground">Symptoms</h2>
-              <p className="text-muted-foreground mt-1">Select all that apply (optional)</p>
+              <h2 className="font-display text-2xl font-bold text-foreground">{s.title}</h2>
+              <p className="text-muted-foreground mt-1">{s.subtitle}</p>
             </div>
             <div className="space-y-3">
-              {SYMPTOMS.map((symptom) => (
-                <label key={symptom} className={`flex items-center gap-3 rounded-xl border-2 p-4 cursor-pointer transition-all ${data.symptoms.includes(symptom) ? "border-primary bg-accent" : "border-border hover:border-primary/40"}`}>
-                  <Checkbox
-                    checked={data.symptoms.includes(symptom)}
-                    onCheckedChange={() => setData({ ...data, symptoms: toggleArrayItem(data.symptoms, symptom) })}
-                  />
-                  <span className="text-base font-medium text-foreground">{symptom}</span>
-                </label>
-              ))}
+              {s.options?.map(opt => {
+                const checked = (answers[s.key] || []).includes(opt.value);
+                return (
+                  <label key={opt.value} className={`flex items-center gap-3 rounded-xl border-2 p-4 cursor-pointer transition-all ${checked ? "border-primary bg-accent" : "border-border hover:border-primary/40"}`}>
+                    <Checkbox checked={checked} onCheckedChange={() => toggleArrayItem(s.key, opt.value)} />
+                    <span className="text-base font-medium text-foreground">{opt.label}</span>
+                  </label>
+                );
+              })}
             </div>
           </motion.div>
         );
-      case 4:
+
+      case "lifestyle_group":
         return (
-          <motion.div key="step4" variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="space-y-6">
+          <motion.div key={s.key} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="space-y-6">
             <div>
-              <h2 className="font-display text-2xl font-bold text-foreground">Hair Changes</h2>
-              <p className="text-muted-foreground mt-1">Select all that apply (optional)</p>
-            </div>
-            <div className="space-y-3">
-              {HAIR_CHANGES.map((change) => (
-                <label key={change} className={`flex items-center gap-3 rounded-xl border-2 p-4 cursor-pointer transition-all ${data.hairChanges.includes(change) ? "border-primary bg-accent" : "border-border hover:border-primary/40"}`}>
-                  <Checkbox
-                    checked={data.hairChanges.includes(change)}
-                    onCheckedChange={() => setData({ ...data, hairChanges: toggleArrayItem(data.hairChanges, change) })}
-                  />
-                  <span className="text-base font-medium text-foreground">{change}</span>
-                </label>
-              ))}
-            </div>
-          </motion.div>
-        );
-      case 5:
-        return (
-          <motion.div key="step5" variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="space-y-6">
-            <div>
-              <h2 className="font-display text-2xl font-bold text-foreground">Lifestyle</h2>
-              <p className="text-muted-foreground mt-1">Tell us about your daily habits</p>
+              <h2 className="font-display text-2xl font-bold text-foreground">{s.title}</h2>
+              <p className="text-muted-foreground mt-1">{s.subtitle}</p>
             </div>
             <div className="space-y-5">
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Stress Level *</Label>
-                <Select value={data.stressLevel} onValueChange={(v) => setData({ ...data, stressLevel: v as StressLevel })}>
-                  <SelectTrigger><SelectValue placeholder="Select stress level" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Sleep Hours per Night *</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={16}
-                  value={data.sleepHours}
-                  onChange={(e) => setData({ ...data, sleepHours: Number(e.target.value) })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Protein Intake</Label>
-                <Select value={data.proteinIntake} onValueChange={(v) => setData({ ...data, proteinIntake: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="moderate">Moderate</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Hair Styling Frequency</Label>
-                <Select value={data.hairStylingFrequency} onValueChange={(v) => setData({ ...data, hairStylingFrequency: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="rarely">Rarely</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="daily">Daily</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Hair Coloring / Treatments</Label>
-                <Select value={data.hairColoringTreatments} onValueChange={(v) => setData({ ...data, hairColoringTreatments: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="never">Never</SelectItem>
-                    <SelectItem value="occasionally">Occasionally</SelectItem>
-                    <SelectItem value="frequently">Frequently</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {(s.fields as QuizField[])?.map(field => (
+                <div key={field.key} className="space-y-2">
+                  <Label className="text-sm font-medium">{field.label} {field.required && "*"}</Label>
+                  {field.type === "select" && field.options ? (
+                    <Select value={answers[field.key] || ""} onValueChange={v => setAnswer(field.key, v)}>
+                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectContent>
+                        {field.options.map(opt => (
+                          <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : field.type === "number" ? (
+                    <Input
+                      type="number"
+                      min={field.min}
+                      max={field.max}
+                      value={answers[field.key] ?? 7}
+                      onChange={e => setAnswer(field.key, Number(e.target.value))}
+                    />
+                  ) : null}
+                </div>
+              ))}
             </div>
           </motion.div>
         );
-      case 6:
+
+      case "photo_upload":
         return (
-          <motion.div key="step6" variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="space-y-6">
+          <motion.div key={s.key} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="space-y-6">
             <div>
-              <h2 className="font-display text-2xl font-bold text-foreground">Photo Upload</h2>
-              <p className="text-muted-foreground mt-1">Optional — helps us give a more accurate assessment</p>
+              <h2 className="font-display text-2xl font-bold text-foreground">{s.title}</h2>
+              <p className="text-muted-foreground mt-1">{s.subtitle}</p>
             </div>
             <div className="grid gap-4">
-              <FileUploadBox label="Front Scalp" file={data.photoFrontScalp} onSelect={(f) => setData({ ...data, photoFrontScalp: f })} />
-              <FileUploadBox label="Top Scalp" file={data.photoTopScalp} onSelect={(f) => setData({ ...data, photoTopScalp: f })} />
-              <FileUploadBox label="Crown" file={data.photoCrown} onSelect={(f) => setData({ ...data, photoCrown: f })} />
+              {(s.fields as PhotoField[])?.map(f => (
+                <FileUploadBox key={f.key} label={f.label} file={photos[f.key] || null} onSelect={file => setPhotos(prev => ({ ...prev, [f.key]: file }))} />
+              ))}
             </div>
           </motion.div>
         );
+
       default:
         return null;
     }
@@ -336,44 +240,29 @@ const QuizFlow = () => {
 
   return (
     <div className="max-w-lg mx-auto space-y-8">
-      {/* Progress */}
       <div className="space-y-2">
         <div className="flex justify-between text-sm text-muted-foreground">
-          <span>Step {step} of {TOTAL_STEPS}</span>
+          <span>Step {step + 1} of {totalSteps}</span>
           <span>{Math.round(progress)}%</span>
         </div>
         <Progress value={progress} className="h-2" />
       </div>
 
-      {/* Step Content */}
       <AnimatePresence mode="wait">
-        {stepContent()}
+        {currentStep && renderStep(currentStep)}
       </AnimatePresence>
 
-      {/* Navigation */}
       <div className="flex justify-between pt-4">
-        <Button
-          variant="heroOutline"
-          onClick={() => setStep((s) => s - 1)}
-          disabled={step === 1}
-        >
+        <Button variant="heroOutline" onClick={() => setStep(s => s - 1)} disabled={step === 0}>
           <ArrowLeft className="h-4 w-4 mr-1" /> Back
         </Button>
 
-        {step < TOTAL_STEPS ? (
-          <Button
-            variant="hero"
-            onClick={() => setStep((s) => s + 1)}
-            disabled={!canProceed()}
-          >
+        {step < totalSteps - 1 ? (
+          <Button variant="hero" onClick={() => setStep(s => s + 1)} disabled={!canProceed()}>
             Next <ArrowRight className="h-4 w-4 ml-1" />
           </Button>
         ) : (
-          <Button
-            variant="hero"
-            onClick={handleSubmit}
-            disabled={submitting || !canProceed()}
-          >
+          <Button variant="hero" onClick={handleSubmit} disabled={submitting || !canProceed()}>
             {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Upload className="h-4 w-4 mr-1" />}
             {submitting ? "Submitting…" : "Get My Report"}
           </Button>
