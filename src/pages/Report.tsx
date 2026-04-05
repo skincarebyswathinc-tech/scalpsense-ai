@@ -42,6 +42,7 @@ const Report = () => {
   const [shareOpen, setShareOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
+  const { data: quizConfig } = useQuizConfig();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -108,7 +109,7 @@ const Report = () => {
     toast({ title: "Report unlocked! 🎉" });
   };
 
-  const report = assessment ? computeReport(assessment) : null;
+  const report = assessment && quizConfig ? computeReportFromConfig(assessment, quizConfig.scoring) : null;
   const shareUrl = referralCode
     ? `${window.location.origin}/quiz?ref=${referralCode}`
     : `${window.location.origin}/quiz`;
