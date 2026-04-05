@@ -14,6 +14,8 @@ import { motion } from "framer-motion";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import { useQuizConfig } from "@/hooks/useQuizConfig";
+import { computeReportFromConfig } from "@/lib/reportScorer";
 
 // ─── Score helpers ───────────────────────────────────────────────
 interface AssessmentData {
@@ -23,49 +25,6 @@ interface AssessmentData {
   hair_changes: string[];
   stress_level: string;
   sleep_hours: number;
-}
-
-const SHEDDING_SCORE: Record<string, number> = {
-  less_than_50: 90, "50_100": 70, "100_150": 45, "150_plus": 20,
-};
-const SCALP_FEEL_LABEL: Record<string, string> = {
-  dry: "Dry Scalp", balanced: "Balanced", slightly_oily: "Slightly Oily", very_oily: "Very Oily",
-};
-const SCALP_FEEL_SCORE: Record<string, number> = {
-  dry: 55, balanced: 95, slightly_oily: 70, very_oily: 40,
-};
-const STRESS_SCORE: Record<string, number> = { low: 90, medium: 60, high: 30 };
-
-function computeReport(d: AssessmentData) {
-  const sheddingScore = SHEDDING_SCORE[d.hair_shedding] ?? 50;
-  const scalpScore = SCALP_FEEL_SCORE[d.scalp_feel] ?? 50;
-  const symptomPenalty = Math.min(d.symptoms.length * 8, 40);
-  const changePenalty = Math.min(d.hair_changes.length * 10, 40);
-  const stressScore = STRESS_SCORE[d.stress_level] ?? 50;
-  const sleepScore = d.sleep_hours >= 7 ? 90 : d.sleep_hours >= 5 ? 60 : 30;
-
-  const raw = (sheddingScore * 0.25 + scalpScore * 0.15 + (100 - symptomPenalty) * 0.2 +
-    (100 - changePenalty) * 0.15 + stressScore * 0.15 + sleepScore * 0.1);
-  const score = Math.round(Math.max(0, Math.min(100, raw)));
-
-  const scalpType = SCALP_FEEL_LABEL[d.scalp_feel] || "Unknown";
-
-  const issues: string[] = [];
-  if (d.symptoms.length > 0) issues.push(`${d.symptoms.length} scalp symptom${d.symptoms.length > 1 ? "s" : ""} detected`);
-  if (d.hair_changes.length > 0) issues.push(`${d.hair_changes.length} hair change pattern${d.hair_changes.length > 1 ? "s" : ""}`);
-  if (d.hair_shedding === "150_plus") issues.push("Heavy hair shedding (150+ strands/day)");
-  else if (d.hair_shedding === "100_150") issues.push("Moderate shedding (100-150 strands/day)");
-  if (d.stress_level === "high") issues.push("High stress levels affecting scalp");
-  if (d.sleep_hours < 6) issues.push("Insufficient sleep impacting recovery");
-  if (d.scalp_feel === "very_oily") issues.push("Excess oil may clog follicles");
-  if (d.scalp_feel === "dry") issues.push("Dry scalp may cause irritation");
-
-  const improvement = score < 40 ? "High — significant improvement possible with the right protocol"
-    : score < 65 ? "Moderate — targeted intervention can boost your score 20-30%"
-    : score < 80 ? "Good — fine-tuning your routine can push you to excellent"
-    : "Excellent — maintain your routine for lasting results";
-
-  return { score, scalpType, issues, improvement };
 }
 
 // ─── Referral code generator ─────────────────────────────────────
