@@ -142,6 +142,14 @@ const QuizFlow = () => {
 
   const variants = { enter: { opacity: 0, x: 40 }, center: { opacity: 1, x: 0 }, exit: { opacity: 0, x: -40 } };
 
+  const StepHeader = ({ s: step }: { s: QuizStep }) => (
+    <div>
+      <h2 className="font-display text-2xl font-bold text-foreground">{step.title}</h2>
+      <p className="text-muted-foreground mt-1">{step.subtitle}</p>
+      {step.description && <p className="text-sm text-muted-foreground mt-2">{step.description}</p>}
+    </div>
+  );
+
   const renderStep = (s: QuizStep) => {
     switch (s.type) {
       case "radio":
