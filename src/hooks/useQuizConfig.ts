@@ -27,6 +27,7 @@ export interface QuizStep {
   key: string;
   title: string;
   subtitle: string;
+  description?: string;
   type: "radio" | "checkbox" | "lifestyle_group" | "photo_upload";
   required: boolean;
   db_column?: string;

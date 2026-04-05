@@ -19,7 +19,6 @@ import Referrals from "./pages/Referrals";
 import Recommendations from "./pages/Recommendations";
 import AdminProducts from "./pages/AdminProducts";
 import AdminDashboard from "./pages/AdminDashboard";
-import AdminQuizzes from "./pages/AdminQuizzes";
 import AdminScalpQuiz from "./pages/AdminScalpQuiz";
 import Profile from "./pages/Profile";
 import KitsPage from "./pages/Kits";
@@ -52,7 +51,6 @@ const App = () => (
               <Route path="/recommendations" element={<Recommendations />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/products" element={<AdminProducts />} />
-              <Route path="/admin/quizzes" element={<AdminQuizzes />} />
               <Route path="/admin/scalp-quiz" element={<AdminScalpQuiz />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
