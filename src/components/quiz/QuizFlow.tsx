@@ -155,10 +155,7 @@ const QuizFlow = () => {
       case "radio":
         return (
           <motion.div key={s.key} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="space-y-6">
-            <div>
-              <h2 className="font-display text-2xl font-bold text-foreground">{s.title}</h2>
-              <p className="text-muted-foreground mt-1">{s.subtitle}</p>
-            </div>
+            <StepHeader s={s} />
             <RadioGroup value={answers[s.key] || ""} onValueChange={v => setAnswer(s.key, v)}>
               {s.options?.map(opt => (
                 <label key={opt.value} className={`flex items-center gap-3 rounded-xl border-2 p-4 cursor-pointer transition-all ${answers[s.key] === opt.value ? "border-primary bg-accent" : "border-border hover:border-primary/40"}`}>
@@ -173,10 +170,7 @@ const QuizFlow = () => {
       case "checkbox":
         return (
           <motion.div key={s.key} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="space-y-6">
-            <div>
-              <h2 className="font-display text-2xl font-bold text-foreground">{s.title}</h2>
-              <p className="text-muted-foreground mt-1">{s.subtitle}</p>
-            </div>
+            <StepHeader s={s} />
             <div className="space-y-3">
               {s.options?.map(opt => {
                 const checked = (answers[s.key] || []).includes(opt.value);
@@ -194,10 +188,7 @@ const QuizFlow = () => {
       case "lifestyle_group":
         return (
           <motion.div key={s.key} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="space-y-6">
-            <div>
-              <h2 className="font-display text-2xl font-bold text-foreground">{s.title}</h2>
-              <p className="text-muted-foreground mt-1">{s.subtitle}</p>
-            </div>
+            <StepHeader s={s} />
             <div className="space-y-5">
               {(s.fields as QuizField[])?.map(field => (
                 <div key={field.key} className="space-y-2">
@@ -229,10 +220,7 @@ const QuizFlow = () => {
       case "photo_upload":
         return (
           <motion.div key={s.key} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="space-y-6">
-            <div>
-              <h2 className="font-display text-2xl font-bold text-foreground">{s.title}</h2>
-              <p className="text-muted-foreground mt-1">{s.subtitle}</p>
-            </div>
+            <StepHeader s={s} />
             <div className="grid gap-4">
               {(s.fields as PhotoField[])?.map(f => (
                 <FileUploadBox key={f.key} label={f.label} file={photos[f.key] || null} onSelect={file => setPhotos(prev => ({ ...prev, [f.key]: file }))} />
