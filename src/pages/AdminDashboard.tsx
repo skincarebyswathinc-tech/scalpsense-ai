@@ -220,6 +220,7 @@ const AdminDashboard = () => {
             </Button>
             <Button variant="outline" asChild>
               <Link to="/admin/scalp-quiz"><Activity className="mr-2 h-4 w-4" /> Scalp Quiz Config</Link>
+            </Button>
           </div>
         </div>
 
