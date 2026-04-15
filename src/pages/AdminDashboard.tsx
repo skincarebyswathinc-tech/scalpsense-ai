@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Users, CreditCard, TrendingUp, TrendingDown, BarChart3, ShieldCheck,
-  Package, ArrowRight, Activity, Percent, UserMinus, Gift,
+  Package, ArrowRight, Activity, Percent, UserMinus, Gift, Star, HelpCircle, Mail,
 } from "lucide-react";
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -211,12 +211,21 @@ const AdminDashboard = () => {
             <h1 className="font-display text-3xl font-bold text-foreground">Admin Dashboard</h1>
             <p className="text-muted-foreground font-body text-sm mt-1">Business metrics and analytics at a glance.</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button variant="outline" asChild>
               <Link to="/admin/products"><Package className="mr-2 h-4 w-4" /> Products</Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link to="/admin/scalp-quiz"><Activity className="mr-2 h-4 w-4" /> Scalp Quiz Config</Link>
+              <Link to="/admin/scalp-quiz"><Activity className="mr-2 h-4 w-4" /> Scalp Quiz</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/admin/reviews"><Star className="mr-2 h-4 w-4" /> Reviews</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/admin/faqs"><HelpCircle className="mr-2 h-4 w-4" /> FAQs</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/admin/leads"><Mail className="mr-2 h-4 w-4" /> Leads</Link>
             </Button>
           </div>
         </div>
