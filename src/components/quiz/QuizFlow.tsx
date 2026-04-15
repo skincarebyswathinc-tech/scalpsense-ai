@@ -62,6 +62,9 @@ const QuizFlow = () => {
     if (currentStep.type === "radio") {
       return !!answers[currentStep.key];
     }
+    if (currentStep.type === "text_input") {
+      return !!answers[currentStep.key]?.trim();
+    }
     if (currentStep.type === "lifestyle_group" && currentStep.fields) {
       return (currentStep.fields as QuizField[])
         .filter(f => f.required)

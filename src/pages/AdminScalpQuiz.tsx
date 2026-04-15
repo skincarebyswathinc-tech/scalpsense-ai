@@ -267,14 +267,26 @@ const AdminScalpQuiz = () => {
                     <Label className="text-xs">Required step</Label>
                   </div>
 
-                  {/* DB column for radio/checkbox */}
-                  {(step.type === "radio" || step.type === "checkbox") && (
+                  {/* DB column for radio/checkbox/text_input */}
+                  {(step.type === "radio" || step.type === "checkbox" || step.type === "text_input") && (
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">DB Column</Label>
                       <Input
                         placeholder="e.g. hair_shedding"
                         value={step.db_column || ""}
                         onChange={e => updateStepField(idx, "db_column", e.target.value)}
+                      />
+                    </div>
+                  )}
+
+                  {/* Placeholder for text_input */}
+                  {step.type === "text_input" && (
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">Placeholder Text</Label>
+                      <Input
+                        placeholder="e.g. Describe your scalp condition..."
+                        value={(step as any).placeholder || ""}
+                        onChange={e => updateStepField(idx, "placeholder", e.target.value)}
                       />
                     </div>
                   )}
