@@ -524,6 +524,7 @@ export type Database = {
       scalp_assessments: {
         Row: {
           created_at: string
+          exercise_habits: string | null
           hair_changes: string[] | null
           hair_coloring_treatments: string | null
           hair_shedding: Database["public"]["Enums"]["shedding_level"]
@@ -541,6 +542,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          exercise_habits?: string | null
           hair_changes?: string[] | null
           hair_coloring_treatments?: string | null
           hair_shedding: Database["public"]["Enums"]["shedding_level"]
@@ -558,6 +560,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          exercise_habits?: string | null
           hair_changes?: string[] | null
           hair_coloring_treatments?: string | null
           hair_shedding?: Database["public"]["Enums"]["shedding_level"]
