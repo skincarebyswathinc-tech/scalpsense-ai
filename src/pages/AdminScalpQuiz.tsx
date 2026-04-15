@@ -71,7 +71,7 @@ const AdminScalpQuiz = () => {
     setSteps(prev => prev.map((s, i) => i === idx ? { ...s, [field]: value } : s));
   };
 
-  const addStep = (type: "radio" | "checkbox" | "photo_upload" | "lifestyle_group") => {
+  const addStep = (type: "radio" | "checkbox" | "photo_upload" | "lifestyle_group" | "text_input") => {
     const baseStep: QuizStep = {
       key: `step_${Date.now()}`,
       title: "New Step",
@@ -87,6 +87,9 @@ const AdminScalpQuiz = () => {
       baseStep.fields = [{ key: `photo_${Date.now()}`, label: "Photo", db_column: "" }];
     } else if (type === "lifestyle_group") {
       baseStep.fields = [];
+    } else if (type === "text_input") {
+      baseStep.db_column = "";
+      baseStep.placeholder = "Enter your answer...";
     }
     setSteps(prev => [...prev, baseStep]);
   };
@@ -197,6 +200,9 @@ const AdminScalpQuiz = () => {
                   <Button size="sm" variant="outline" onClick={() => addStep("checkbox")}>
                     <Plus className="h-3 w-3 mr-1" /> Checkbox
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => addStep("text_input")}>
+                    <Plus className="h-3 w-3 mr-1" /> Text / Description
+                  </Button>
                   <Button size="sm" variant="outline" onClick={() => addStep("photo_upload")}>
                     <Plus className="h-3 w-3 mr-1" /> Photo Upload
                   </Button>
@@ -261,14 +267,26 @@ const AdminScalpQuiz = () => {
                     <Label className="text-xs">Required step</Label>
                   </div>
 
-                  {/* DB column for radio/checkbox */}
-                  {(step.type === "radio" || step.type === "checkbox") && (
+                  {/* DB column for radio/checkbox/text_input */}
+                  {(step.type === "radio" || step.type === "checkbox" || step.type === "text_input") && (
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">DB Column</Label>
                       <Input
                         placeholder="e.g. hair_shedding"
                         value={step.db_column || ""}
                         onChange={e => updateStepField(idx, "db_column", e.target.value)}
+                      />
+                    </div>
+                  )}
+
+                  {/* Placeholder for text_input */}
+                  {step.type === "text_input" && (
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">Placeholder Text</Label>
+                      <Input
+                        placeholder="e.g. Describe your scalp condition..."
+                        value={(step as any).placeholder || ""}
+                        onChange={e => updateStepField(idx, "placeholder", e.target.value)}
                       />
                     </div>
                   )}

@@ -3,17 +3,19 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/landing/Navbar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, BarChart3, ShieldCheck } from "lucide-react";
+import { Plus, Pencil, Trash2, BarChart3, ShieldCheck, ImageIcon } from "lucide-react";
+
+const DEFAULT_PRODUCT_IMAGE = "/placeholder.svg";
 
 interface Product {
   id: string;
@@ -24,6 +26,8 @@ interface Product {
   description: string | null;
   price_display: string | null;
   purchase_url: string | null;
+  payment_link: string | null;
+  image_url: string | null;
   target_scalp_types: string[];
   target_symptoms: string[];
   is_active: boolean;
@@ -44,6 +48,8 @@ const emptyProduct = {
   description: "",
   price_display: "",
   purchase_url: "",
+  payment_link: "",
+  image_url: "",
   target_scalp_types: [] as string[],
   target_symptoms: [] as string[],
   is_active: true,
@@ -116,6 +122,8 @@ const AdminProducts = () => {
       description: product.description || "",
       price_display: product.price_display || "",
       purchase_url: product.purchase_url || "",
+      payment_link: product.payment_link || "",
+      image_url: product.image_url || "",
       target_scalp_types: product.target_scalp_types,
       target_symptoms: product.target_symptoms,
       is_active: product.is_active,
@@ -133,6 +141,8 @@ const AdminProducts = () => {
   const saveProduct = async () => {
     const payload = {
       ...form,
+      image_url: form.image_url || null,
+      payment_link: form.payment_link || null,
       target_scalp_types: form.target_scalp_types,
       target_symptoms: form.target_symptoms,
     };
@@ -200,20 +210,31 @@ const AdminProducts = () => {
         <div className="space-y-3">
           {products.map((product) => {
             const stats = getStats(product.id);
+            const imgSrc = product.image_url || DEFAULT_PRODUCT_IMAGE;
             return (
               <Card key={product.id} className={`shadow-card ${!product.is_active ? "opacity-50" : ""}`}>
                 <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-display font-bold text-foreground">{product.name}</span>
-                      <Badge variant="outline" className="text-xs">{product.category}</Badge>
-                      <Badge variant="secondary" className="text-xs">{product.tier}</Badge>
-                      {!product.is_active && <Badge variant="destructive" className="text-xs">Inactive</Badge>}
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                      <img
+                        src={imgSrc}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_PRODUCT_IMAGE; }}
+                      />
                     </div>
-                    <p className="text-xs text-muted-foreground font-body mt-1">{product.brand} · {product.price_display}</p>
-                    <div className="flex gap-4 mt-1 text-xs text-muted-foreground font-body">
-                      <span><BarChart3 className="inline h-3 w-3 mr-1" />{stats.views} views</span>
-                      <span>{stats.purchase_clicks} clicks</span>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-display font-bold text-foreground">{product.name}</span>
+                        <Badge variant="outline" className="text-xs">{product.category}</Badge>
+                        <Badge variant="secondary" className="text-xs">{product.tier}</Badge>
+                        {!product.is_active && <Badge variant="destructive" className="text-xs">Inactive</Badge>}
+                      </div>
+                      <p className="text-xs text-muted-foreground font-body mt-1">{product.brand} · {product.price_display}</p>
+                      <div className="flex gap-4 mt-1 text-xs text-muted-foreground font-body">
+                        <span><BarChart3 className="inline h-3 w-3 mr-1" />{stats.views} views</span>
+                        <span>{stats.purchase_clicks} clicks</span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -271,6 +292,25 @@ const AdminProducts = () => {
                 <Label>Description</Label>
                 <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} />
               </div>
+
+              {/* Image URL */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5">
+                  <ImageIcon className="h-4 w-4" /> Image URL
+                </Label>
+                <Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://... (leave blank for default)" />
+                {(form.image_url || DEFAULT_PRODUCT_IMAGE) && (
+                  <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted">
+                    <img
+                      src={form.image_url || DEFAULT_PRODUCT_IMAGE}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_PRODUCT_IMAGE; }}
+                    />
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Price Display</Label>
@@ -284,6 +324,10 @@ const AdminProducts = () => {
               <div className="space-y-2">
                 <Label>Purchase URL</Label>
                 <Input value={form.purchase_url} onChange={(e) => setForm({ ...form, purchase_url: e.target.value })} placeholder="https://..." />
+              </div>
+              <div className="space-y-2">
+                <Label>Payment Link</Label>
+                <Input value={form.payment_link} onChange={(e) => setForm({ ...form, payment_link: e.target.value })} placeholder="https://rzp.io/..." />
               </div>
               <div className="space-y-2">
                 <Label>Target Scalp Types (comma-separated)</Label>

@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/landing/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExternalLink, ShoppingBag, Droplets, FlaskConical, Pill, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+
+const DEFAULT_PRODUCT_IMAGE = "/placeholder.svg";
 
 interface Product {
   id: string;
@@ -48,13 +48,11 @@ const Recommendations = () => {
   const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [userScalpType, setUserScalpType] = useState<string | null>(null);
-  const [userSymptoms, setUserSymptoms] = useState<string[]>([]);
   const [selectedTier, setSelectedTier] = useState("all");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch products
       const { data: prods } = await supabase
         .from("products")
         .select("*")
@@ -63,7 +61,6 @@ const Recommendations = () => {
 
       if (prods) setProducts(prods as unknown as Product[]);
 
-      // Fetch user's latest assessment for personalization
       if (user) {
         const { data: reports } = await supabase
           .from("user_reports")
@@ -81,7 +78,6 @@ const Recommendations = () => {
 
           if (assessment) {
             setUserScalpType(assessment.scalp_feel);
-            setUserSymptoms(assessment.symptoms || []);
           }
         }
       }
@@ -106,7 +102,6 @@ const Recommendations = () => {
     }
   };
 
-  // Sort: personalized matches first
   const sortedProducts = [...products].sort((a, b) => {
     if (!userScalpType) return 0;
     const aMatch = a.target_scalp_types.includes(userScalpType) ? 1 : 0;
@@ -135,7 +130,6 @@ const Recommendations = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="pt-24 pb-16 container mx-auto px-4 max-w-5xl space-y-8">
-        {/* Header */}
         <div>
           <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground">
             Recommended for You
@@ -182,6 +176,7 @@ const Recommendations = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {catProducts.map((product, i) => {
                   const isMatch = userScalpType && product.target_scalp_types.includes(userScalpType);
+                  const imgSrc = product.image_url || DEFAULT_PRODUCT_IMAGE;
 
                   return (
                     <motion.div
@@ -196,6 +191,16 @@ const Recommendations = () => {
                             ⭐ Matched to your scalp type
                           </div>
                         )}
+                        {/* Product Image */}
+                        <div className="w-full aspect-[4/3] bg-muted overflow-hidden">
+                          <img
+                            src={imgSrc}
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                            onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_PRODUCT_IMAGE; }}
+                          />
+                        </div>
                         <CardHeader className="pb-2">
                           <div className="flex items-start justify-between gap-2">
                             <div>

@@ -28,11 +28,15 @@ export interface QuizStep {
   title: string;
   subtitle: string;
   description?: string;
-  type: "radio" | "checkbox" | "lifestyle_group" | "photo_upload";
+  type: "radio" | "checkbox" | "lifestyle_group" | "photo_upload" | "text_input";
   required: boolean;
   db_column?: string;
   options?: QuizOption[];
   fields?: (QuizField | PhotoField)[];
+  /** For text_input: placeholder text */
+  placeholder?: string;
+  /** For scoring: weight assigned to this question */
+  weight?: number;
 }
 
 export interface ScoringConfig {

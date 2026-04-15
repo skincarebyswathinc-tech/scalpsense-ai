@@ -2,7 +2,9 @@ import { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
-import { Lock, Sparkles } from "lucide-react";
+import { Lock, Sparkles, CreditCard } from "lucide-react";
+
+const RAZORPAY_LINK = "https://rzp.io/rzp/tvRdbY6";
 
 interface PremiumGateProps {
   children: ReactNode;
@@ -17,6 +19,26 @@ const PremiumGate = ({ children, feature, blur = true }: PremiumGateProps) => {
 
   if (loading) return <>{children}</>;
   if (isPremium) return <>{children}</>;
+
+  const UpgradeButtons = () => (
+    <div className="space-y-2 w-full">
+      <Button variant="hero" size="lg" asChild className="w-full">
+        <a href={RAZORPAY_LINK} target="_blank" rel="noopener noreferrer">
+          <CreditCard className="mr-2 h-4 w-4" /> Upgrade to Premium
+        </a>
+      </Button>
+      <Button
+        variant="outline"
+        size="lg"
+        className="w-full border-destructive/30 text-destructive hover:bg-destructive/10"
+        asChild
+      >
+        <a href={RAZORPAY_LINK} target="_blank" rel="noopener noreferrer">
+          <Sparkles className="mr-2 h-4 w-4" /> Claim 20% Off — ₹399/mo →
+        </a>
+      </Button>
+    </div>
+  );
 
   if (blur) {
     return (
@@ -38,11 +60,7 @@ const PremiumGate = ({ children, feature, blur = true }: PremiumGateProps) => {
             <p className="font-body text-xs text-destructive font-medium">
               Early intervention prevents long-term hair loss.
             </p>
-            <Button variant="hero" size="lg" asChild className="w-full">
-              <Link to="/upgrade">
-                <Sparkles className="mr-2 h-4 w-4" /> Unlock Your Full Scalp Recovery Plan
-              </Link>
-            </Button>
+            <UpgradeButtons />
           </div>
         </div>
       </div>
@@ -63,11 +81,7 @@ const PremiumGate = ({ children, feature, blur = true }: PremiumGateProps) => {
       <p className="font-body text-xs text-destructive font-medium">
         Early intervention prevents long-term hair loss.
       </p>
-      <Button variant="hero" size="lg" asChild>
-        <Link to="/upgrade">
-          <Sparkles className="mr-2 h-4 w-4" /> Unlock Your Full Scalp Recovery Plan
-        </Link>
-      </Button>
+      <UpgradeButtons />
     </div>
   );
 };

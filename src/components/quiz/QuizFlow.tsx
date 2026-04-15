@@ -7,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -62,6 +63,9 @@ const QuizFlow = () => {
     if (currentStep.type === "radio") {
       return !!answers[currentStep.key];
     }
+    if (currentStep.type === "text_input") {
+      return !!answers[currentStep.key]?.trim();
+    }
     if (currentStep.type === "lifestyle_group" && currentStep.fields) {
       return (currentStep.fields as QuizField[])
         .filter(f => f.required)
@@ -92,6 +96,10 @@ const QuizFlow = () => {
         if (s.type === "radio" || s.type === "checkbox") {
           if (s.db_column && answers[s.key] !== undefined) {
             insertData[s.db_column] = answers[s.key] || (s.type === "checkbox" ? [] : null);
+          }
+        } else if (s.type === "text_input") {
+          if (s.db_column && answers[s.key]) {
+            insertData[s.db_column] = answers[s.key];
           }
         } else if (s.type === "lifestyle_group" && s.fields) {
           for (const f of s.fields as QuizField[]) {
@@ -226,6 +234,20 @@ const QuizFlow = () => {
                 <FileUploadBox key={f.key} label={f.label} file={photos[f.key] || null} onSelect={file => setPhotos(prev => ({ ...prev, [f.key]: file }))} />
               ))}
             </div>
+          </motion.div>
+        );
+
+      case "text_input":
+        return (
+          <motion.div key={s.key} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="space-y-6">
+            <StepHeader s={s} />
+            <Textarea
+              value={answers[s.key] || ""}
+              onChange={e => setAnswer(s.key, e.target.value)}
+              placeholder={s.placeholder || "Describe in detail..."}
+              rows={5}
+              className="text-base"
+            />
           </motion.div>
         );
 
