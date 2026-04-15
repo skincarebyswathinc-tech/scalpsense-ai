@@ -236,6 +236,20 @@ const QuizFlow = () => {
           </motion.div>
         );
 
+      case "text_input":
+        return (
+          <motion.div key={s.key} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="space-y-6">
+            <StepHeader s={s} />
+            <Textarea
+              value={answers[s.key] || ""}
+              onChange={e => setAnswer(s.key, e.target.value)}
+              placeholder={s.placeholder || "Describe in detail..."}
+              rows={5}
+              className="text-base"
+            />
+          </motion.div>
+        );
+
       default:
         return null;
     }
