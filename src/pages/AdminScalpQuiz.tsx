@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +31,7 @@ const AdminScalpQuiz = () => {
   const [saving, setSaving] = useState(false);
   const [configId, setConfigId] = useState<string>("");
   const [version, setVersion] = useState(1);
+  const stepsEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (config) {
@@ -79,6 +80,7 @@ const AdminScalpQuiz = () => {
       type,
       required: false,
       description: "",
+      weight: 0,
     };
     if (type === "radio" || type === "checkbox") {
       baseStep.db_column = "";
@@ -92,6 +94,8 @@ const AdminScalpQuiz = () => {
       baseStep.placeholder = "Enter your answer...";
     }
     setSteps(prev => [...prev, baseStep]);
+    // Auto-scroll to new step
+    setTimeout(() => stepsEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
   };
 
   const removeStep = (idx: number) => {
