@@ -262,13 +262,24 @@ const AdminScalpQuiz = () => {
                     />
                   </div>
 
-                  {/* Required toggle */}
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={step.required}
-                      onCheckedChange={v => updateStepField(idx, "required", v)}
-                    />
-                    <Label className="text-xs">Required step</Label>
+                  {/* Required toggle + Weight */}
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={step.required}
+                        onCheckedChange={v => updateStepField(idx, "required", v)}
+                      />
+                      <Label className="text-xs">Required step</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs">Scoring Weight</Label>
+                      <Input
+                        type="number" step="0.05" min="0" max="1"
+                        className="w-20 h-7 text-xs"
+                        value={step.weight ?? 0}
+                        onChange={e => updateStepField(idx, "weight", parseFloat(e.target.value) || 0)}
+                      />
+                    </div>
                   </div>
 
                   {/* DB column for radio/checkbox/text_input */}
