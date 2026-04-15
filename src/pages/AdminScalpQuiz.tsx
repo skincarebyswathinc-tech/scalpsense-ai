@@ -371,6 +371,7 @@ const AdminScalpQuiz = () => {
                 </CardContent>
               </Card>
             ))}
+            <div ref={stepsEndRef} />
           </TabsContent>
 
           {/* ─── Scoring Tab ──────────────────── */}
