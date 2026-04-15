@@ -47,6 +47,36 @@ export type Database = {
         }
         Relationships: []
       }
+      faqs: {
+        Row: {
+          answer: string
+          created_at: string
+          id: string
+          is_active: boolean
+          question: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          question: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          question?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       habit_completions: {
         Row: {
           completed_at: string
@@ -758,6 +788,39 @@ export type Database = {
           scalp_score?: number
           session_id?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_reviews: {
+        Row: {
+          created_at: string
+          id: string
+          is_approved: boolean
+          rating: number
+          result_highlight: string | null
+          review_text: string
+          user_id: string | null
+          user_name: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          rating?: number
+          result_highlight?: string | null
+          review_text: string
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          rating?: number
+          result_highlight?: string | null
+          review_text?: string
+          user_id?: string | null
+          user_name?: string | null
         }
         Relationships: []
       }

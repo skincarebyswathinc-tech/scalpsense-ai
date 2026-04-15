@@ -19,6 +19,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { motion } from "framer-motion";
 import RecommendedProducts from "@/components/dashboard/RecommendedProducts";
 import RecoveryKits from "@/components/dashboard/RecoveryKits";
+import SubmitReview from "@/components/SubmitReview";
 
 interface RoutineTask {
   id: string;
@@ -430,6 +431,12 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Submit Review */}
+        <div className="mt-8">
+          <h2 className="font-display text-xl font-bold text-foreground mb-4">Share Your Experience</h2>
+          <SubmitReview />
+        </div>
       </div>
     </div>
   );

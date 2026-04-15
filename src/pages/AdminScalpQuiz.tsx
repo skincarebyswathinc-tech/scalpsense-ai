@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +31,7 @@ const AdminScalpQuiz = () => {
   const [saving, setSaving] = useState(false);
   const [configId, setConfigId] = useState<string>("");
   const [version, setVersion] = useState(1);
+  const stepsEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (config) {
@@ -79,6 +80,7 @@ const AdminScalpQuiz = () => {
       type,
       required: false,
       description: "",
+      weight: 0,
     };
     if (type === "radio" || type === "checkbox") {
       baseStep.db_column = "";
@@ -92,6 +94,8 @@ const AdminScalpQuiz = () => {
       baseStep.placeholder = "Enter your answer...";
     }
     setSteps(prev => [...prev, baseStep]);
+    // Auto-scroll to new step
+    setTimeout(() => stepsEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
   };
 
   const removeStep = (idx: number) => {
@@ -258,13 +262,24 @@ const AdminScalpQuiz = () => {
                     />
                   </div>
 
-                  {/* Required toggle */}
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={step.required}
-                      onCheckedChange={v => updateStepField(idx, "required", v)}
-                    />
-                    <Label className="text-xs">Required step</Label>
+                  {/* Required toggle + Weight */}
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={step.required}
+                        onCheckedChange={v => updateStepField(idx, "required", v)}
+                      />
+                      <Label className="text-xs">Required step</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs">Scoring Weight</Label>
+                      <Input
+                        type="number" step="0.05" min="0" max="1"
+                        className="w-20 h-7 text-xs"
+                        value={step.weight ?? 0}
+                        onChange={e => updateStepField(idx, "weight", parseFloat(e.target.value) || 0)}
+                      />
+                    </div>
                   </div>
 
                   {/* DB column for radio/checkbox/text_input */}
@@ -356,6 +371,7 @@ const AdminScalpQuiz = () => {
                 </CardContent>
               </Card>
             ))}
+            <div ref={stepsEndRef} />
           </TabsContent>
 
           {/* ─── Scoring Tab ──────────────────── */}

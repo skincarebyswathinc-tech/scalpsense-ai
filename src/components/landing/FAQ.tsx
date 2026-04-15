@@ -1,7 +1,9 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
-const faqs = [
+const hardcodedFaqs = [
   { q: "How does the scalp diagnostic quiz work?", a: "Our quiz asks targeted questions about your scalp symptoms, hair care habits, lifestyle factors, and medical history. Using AI analysis, we generate a comprehensive scalp health score and personalized recommendations." },
   { q: "Is ScalpSense a replacement for seeing a dermatologist?", a: "No. ScalpSense is an educational and wellness tool designed to help you understand your scalp health. For medical conditions, we always recommend consulting a licensed dermatologist." },
   { q: "How long until I see results?", a: "Most users report noticeable improvements within 3-4 weeks of following their personalized recovery protocol. Our 6-week plan is designed for sustainable, lasting results." },
@@ -10,6 +12,20 @@ const faqs = [
 ];
 
 const FAQ = () => {
+  const { data: dbFaqs } = useQuery({
+    queryKey: ["faqs"],
+    queryFn: async () => {
+      const { data } = await supabase.from("faqs").select("*").eq("is_active", true).order("sort_order");
+      return data as { id: string; question: string; answer: string }[] | null;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Use DB FAQs if available, otherwise fall back to hardcoded
+  const faqs = dbFaqs && dbFaqs.length > 0
+    ? dbFaqs.map(f => ({ q: f.question, a: f.answer }))
+    : hardcodedFaqs;
+
   return (
     <section id="faq" className="py-20 md:py-28">
       <div className="container mx-auto px-4 max-w-2xl">

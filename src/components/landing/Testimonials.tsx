@@ -1,52 +1,45 @@
 import { motion } from "framer-motion";
 import { Star, Quote } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
-const testimonials = [
-  {
-    name: "Sarah M.",
-    location: "Mumbai, India",
-    text: "After years of trying random products, ScalpSense finally helped me understand what was actually going on with my scalp. My hair is visibly thicker after 6 weeks.",
-    rating: 5,
-    result: "Hair thickness improved 40%",
-  },
-  {
-    name: "James R.",
-    location: "London, UK",
-    text: "The diagnostic quiz was eye-opening. I didn't realize my lifestyle habits were affecting my scalp health. The recovery protocol was easy to follow and I saw results in 3 weeks.",
-    rating: 5,
-    result: "Shedding reduced by 65%",
-  },
-  {
-    name: "Priya K.",
-    location: "Bangalore, India",
-    text: "I love how personalized everything is. The weekly check-ins kept me accountable, and I could actually see my progress on the dashboard. Worth every rupee.",
-    rating: 5,
-    result: "Scalp score: 62 → 89",
-  },
-  {
-    name: "Dr. Anisha T.",
-    location: "Delhi, India",
-    text: "As a dermatologist, I recommend ScalpSense to my patients for tracking between visits. The data-driven approach helps us monitor progress objectively.",
-    rating: 5,
-    result: "Recommends to patients",
-  },
-  {
-    name: "Mark L.",
-    location: "Sydney, AU",
-    text: "I was skeptical at first, but the 60-second test pinpointed exactly my issues — stress-related shedding and scalp inflammation. 4 weeks in, my barber noticed the difference.",
-    rating: 5,
-    result: "Hairline regrowth visible",
-  },
-  {
-    name: "Riya S.",
-    location: "Pune, India",
-    text: "The habit tracker is a game changer. Simple daily tasks like scalp massage and nutrition tracking actually made a difference. My ponytail feels thicker!",
-    rating: 5,
-    result: "Ponytail thickness +30%",
-  },
+const fallbackTestimonials = [
+  { name: "Sarah M.", location: "Mumbai, India", text: "After years of trying random products, ScalpSense finally helped me understand what was actually going on with my scalp. My hair is visibly thicker after 6 weeks.", rating: 5, result: "Hair thickness improved 40%" },
+  { name: "James R.", location: "London, UK", text: "The diagnostic quiz was eye-opening. I didn't realize my lifestyle habits were affecting my scalp health. The recovery protocol was easy to follow and I saw results in 3 weeks.", rating: 5, result: "Shedding reduced by 65%" },
+  { name: "Priya K.", location: "Bangalore, India", text: "I love how personalized everything is. The weekly check-ins kept me accountable, and I could actually see my progress on the dashboard. Worth every rupee.", rating: 5, result: "Scalp score: 62 → 89" },
+  { name: "Dr. Anisha T.", location: "Delhi, India", text: "As a dermatologist, I recommend ScalpSense to my patients for tracking between visits. The data-driven approach helps us monitor progress objectively.", rating: 5, result: "Recommends to patients" },
+  { name: "Mark L.", location: "Sydney, AU", text: "I was skeptical at first, but the 60-second test pinpointed exactly my issues — stress-related shedding and scalp inflammation. 4 weeks in, my barber noticed the difference.", rating: 5, result: "Hairline regrowth visible" },
+  { name: "Riya S.", location: "Pune, India", text: "The habit tracker is a game changer. Simple daily tasks like scalp massage and nutrition tracking actually made a difference. My ponytail feels thicker!", rating: 5, result: "Ponytail thickness +30%" },
 ];
 
 const Testimonials = () => {
+  const { data: approvedReviews } = useQuery({
+    queryKey: ["approved-reviews"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("user_reviews")
+        .select("*")
+        .eq("is_approved", true)
+        .order("created_at", { ascending: false })
+        .limit(12);
+      return data as { user_name: string | null; review_text: string; rating: number; result_highlight: string | null }[] | null;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Merge approved reviews with fallbacks
+  const dbTestimonials = (approvedReviews || []).map(r => ({
+    name: r.user_name || "ScalpSense User",
+    location: "",
+    text: r.review_text,
+    rating: r.rating,
+    result: r.result_highlight || "",
+  }));
+
+  const testimonials = dbTestimonials.length > 0
+    ? [...dbTestimonials, ...fallbackTestimonials].slice(0, 6)
+    : fallbackTestimonials;
+
   return (
     <section id="testimonials" className="py-20 md:py-28 bg-secondary/50">
       <div className="container mx-auto px-4">
@@ -68,7 +61,7 @@ const Testimonials = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {testimonials.map((t, i) => (
             <motion.div
-              key={t.name}
+              key={`${t.name}-${i}`}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -87,11 +80,13 @@ const Testimonials = () => {
               <div className="flex items-center justify-between pt-2 border-t border-border">
                 <div>
                   <p className="font-body text-sm font-semibold text-foreground">{t.name}</p>
-                  <p className="text-xs text-muted-foreground font-body">{t.location}</p>
+                  {t.location && <p className="text-xs text-muted-foreground font-body">{t.location}</p>}
                 </div>
-                <span className="text-xs font-body font-medium text-primary bg-accent px-2 py-1 rounded-full">
-                  {t.result}
-                </span>
+                {t.result && (
+                  <span className="text-xs font-body font-medium text-primary bg-accent px-2 py-1 rounded-full">
+                    {t.result}
+                  </span>
+                )}
               </div>
             </motion.div>
           ))}
