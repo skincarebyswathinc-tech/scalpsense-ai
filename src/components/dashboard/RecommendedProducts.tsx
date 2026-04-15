@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingBag, ExternalLink, ArrowRight } from "lucide-react";
 
+const DEFAULT_PRODUCT_IMAGE = "/placeholder.svg";
+
 interface Product {
   id: string;
   name: string;
@@ -16,6 +18,7 @@ interface Product {
   description: string | null;
   price_display: string | null;
   purchase_url: string | null;
+  image_url: string | null;
   target_scalp_types: string[];
 }
 
@@ -31,7 +34,6 @@ const RecommendedProducts = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      // Get user's scalp type
       let scalpType: string | null = null;
       if (user) {
         const { data: reports } = await supabase
@@ -60,7 +62,6 @@ const RecommendedProducts = () => {
 
       if (data) {
         let prods = data as unknown as Product[];
-        // Prioritize matched products
         if (scalpType) {
           prods = [...prods].sort((a, b) => {
             const aM = a.target_scalp_types.includes(scalpType!) ? 1 : 0;
@@ -96,31 +97,43 @@ const RecommendedProducts = () => {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {products.map((p) => (
-            <div key={p.id} className="p-3 rounded-lg border border-border bg-card space-y-2">
-              <div className="flex items-start justify-between gap-1">
-                <div>
-                  <p className="text-xs text-muted-foreground font-body">{p.brand}</p>
-                  <p className="font-body text-sm font-medium text-foreground">{p.name}</p>
+          {products.map((p) => {
+            const imgSrc = p.image_url || DEFAULT_PRODUCT_IMAGE;
+            return (
+              <div key={p.id} className="p-3 rounded-lg border border-border bg-card space-y-2">
+                <div className="w-full aspect-[3/2] rounded-md overflow-hidden bg-muted mb-2">
+                  <img
+                    src={imgSrc}
+                    alt={p.name}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_PRODUCT_IMAGE; }}
+                  />
                 </div>
-                <Badge className={`${tierColors[p.tier]} text-[10px] shrink-0`}>{p.tier}</Badge>
+                <div className="flex items-start justify-between gap-1">
+                  <div>
+                    <p className="text-xs text-muted-foreground font-body">{p.brand}</p>
+                    <p className="font-body text-sm font-medium text-foreground">{p.name}</p>
+                  </div>
+                  <Badge className={`${tierColors[p.tier]} text-[10px] shrink-0`}>{p.tier}</Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-display font-bold text-foreground">{p.price_display}</span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      trackClick(p.id);
+                      if (p.purchase_url) window.open(p.purchase_url, "_blank", "noopener");
+                    }}
+                  >
+                    Buy <ExternalLink className="ml-1 h-3 w-3" />
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="font-display font-bold text-foreground">{p.price_display}</span>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-7 text-xs"
-                  onClick={() => {
-                    trackClick(p.id);
-                    if (p.purchase_url) window.open(p.purchase_url, "_blank", "noopener");
-                  }}
-                >
-                  Buy <ExternalLink className="ml-1 h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </CardContent>
     </Card>

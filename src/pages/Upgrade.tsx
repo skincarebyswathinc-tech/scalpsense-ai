@@ -1,12 +1,13 @@
-import { Link } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Navbar from "@/components/landing/Navbar";
 import UrgencyBanner from "@/components/landing/UrgencyBanner";
-import { Check, X, Sparkles, Crown, Shield, ShieldCheck, Star, Users, BarChart3, Clock } from "lucide-react";
+import { Check, X, Sparkles, Crown, Shield, ShieldCheck, Star, Users, BarChart3, Clock, CreditCard } from "lucide-react";
 import { motion } from "framer-motion";
+
+const RAZORPAY_LINK = "https://rzp.io/rzp/tvRdbY6";
 
 const FREE_FEATURES = [
   { label: "Scalp diagnostic quiz", included: true },
@@ -38,6 +39,10 @@ const testimonials = [
   { name: "Arjun K.", result: "Scalp flaking completely gone in 3 weeks", avatar: "AK" },
   { name: "Sneha R.", result: "Visible regrowth at crown in 6 weeks", avatar: "SR" },
 ];
+
+const handlePayment = () => {
+  window.open(RAZORPAY_LINK, "_blank", "noopener");
+};
 
 const Upgrade = () => {
   const { isPremium } = useSubscription();
@@ -142,11 +147,19 @@ const Upgrade = () => {
                     <Sparkles className="mr-2 h-4 w-4" /> You're on Premium
                   </Button>
                 ) : (
-                  <Button variant="hero" size="lg" className="w-full mt-4" asChild>
-                    <Link to={user ? "/upgrade" : "/auth"}>
-                      <Sparkles className="mr-2 h-4 w-4" /> Start Recovery — 20% Off →
-                    </Link>
-                  </Button>
+                  <div className="space-y-3 mt-4">
+                    <Button variant="hero" size="lg" className="w-full" onClick={handlePayment}>
+                      <CreditCard className="mr-2 h-4 w-4" /> Upgrade to Premium — ₹499/mo
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="w-full border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={handlePayment}
+                    >
+                      <Sparkles className="mr-2 h-4 w-4" /> Claim 20% Off — ₹399/mo →
+                    </Button>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -223,11 +236,19 @@ const Upgrade = () => {
             Every week of delay allows further thinning. 82% of users who started early saw improvement in 6 weeks.
           </p>
           {!isPremium && (
-            <Button variant="hero" size="lg" asChild>
-              <Link to={user ? "/upgrade" : "/auth"}>
+            <div className="flex flex-col sm:flex-row justify-center gap-3">
+              <Button variant="hero" size="lg" onClick={handlePayment}>
+                <CreditCard className="mr-2 h-4 w-4" /> Upgrade to Premium
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-destructive/30 text-destructive hover:bg-destructive/10"
+                onClick={handlePayment}
+              >
                 <Sparkles className="mr-2 h-4 w-4" /> Claim 20% Off Now →
-              </Link>
-            </Button>
+              </Button>
+            </div>
           )}
         </div>
       </div>
