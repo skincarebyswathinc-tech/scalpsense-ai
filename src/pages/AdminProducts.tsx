@@ -293,12 +293,33 @@ const AdminProducts = () => {
                 <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} />
               </div>
 
-              {/* Image URL */}
+              {/* Image Upload or URL */}
               <div className="space-y-2">
                 <Label className="flex items-center gap-1.5">
-                  <ImageIcon className="h-4 w-4" /> Image URL
+                  <ImageIcon className="h-4 w-4" /> Product Image
                 </Label>
-                <Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://... (leave blank for default)" />
+                <div className="flex gap-2">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    className="flex-1"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const ext = file.name.split(".").pop();
+                      const path = `products/${Date.now()}.${ext}`;
+                      const { error } = await supabase.storage.from("product-images").upload(path, file);
+                      if (error) {
+                        toast({ title: "Upload failed", description: error.message, variant: "destructive" });
+                        return;
+                      }
+                      const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
+                      setForm({ ...form, image_url: urlData.publicUrl });
+                      toast({ title: "Image uploaded" });
+                    }}
+                  />
+                </div>
+                <Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="Or paste URL (leave blank for default)" />
                 {(form.image_url || DEFAULT_PRODUCT_IMAGE) && (
                   <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted">
                     <img
@@ -309,7 +330,6 @@ const AdminProducts = () => {
                     />
                   </div>
                 )}
-              </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
