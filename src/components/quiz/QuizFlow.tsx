@@ -96,6 +96,10 @@ const QuizFlow = () => {
           if (s.db_column && answers[s.key] !== undefined) {
             insertData[s.db_column] = answers[s.key] || (s.type === "checkbox" ? [] : null);
           }
+        } else if (s.type === "text_input") {
+          if (s.db_column && answers[s.key]) {
+            insertData[s.db_column] = answers[s.key];
+          }
         } else if (s.type === "lifestyle_group" && s.fields) {
           for (const f of s.fields as QuizField[]) {
             if (f.db_column && answers[f.key] !== undefined) {
