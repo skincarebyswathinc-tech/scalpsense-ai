@@ -58,11 +58,52 @@ export interface ScoringConfig {
   };
   improvement_messages: Record<string, string>;
   improvement_thresholds: Record<string, number>;
-  issue_rules: Array<{
-    condition: string;
-    message?: string;
-    template?: string;
-  }>;
+  issue_rules: IssueRule[];
+}
+
+/**
+ * Issue / message rule.
+ *
+ * Two formats are supported (both stored in the same array):
+ *
+ * 1. Legacy string-condition rule (back-compat):
+ *    { condition: "hair_shedding == 150_plus", message: "Heavy shedding" }
+ *
+ * 2. Structured rule (admin no-code builder):
+ *    { name, question, operator, value, message, severity, priority,
+ *      premium_only, active }
+ *    `question` is the db_column of the answer to evaluate.
+ *    `operator` ∈ "equals" | "not_equals" | "greater_than" | "less_than" |
+ *                "between" | "contains" | "count_gt" | "count_lt"
+ *    For `between`, `value` is "min,max".
+ *    For `count_gt` / `count_lt`, target must be an array column.
+ *    `template` may include `{count}` and `{s}` placeholders for array rules.
+ */
+export interface IssueRule {
+  /** Optional human-readable rule name (admin only) */
+  name?: string;
+  /** Legacy condition string — still evaluated for back-compat */
+  condition?: string;
+  /** db_column of the answer to evaluate */
+  question?: string;
+  operator?:
+    | "equals"
+    | "not_equals"
+    | "greater_than"
+    | "less_than"
+    | "between"
+    | "contains"
+    | "count_gt"
+    | "count_lt";
+  /** Comparison value (string, number, or "min,max" for between) */
+  value?: string | number;
+  /** Output message shown in the report (supports {count}/{s}) */
+  message?: string;
+  template?: string;
+  severity?: "info" | "warning" | "critical";
+  priority?: number;
+  premium_only?: boolean;
+  active?: boolean;
 }
 
 export interface QuizConfig {
