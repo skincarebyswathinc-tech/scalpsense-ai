@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { TagInput } from "@/components/ui/tag-input";
+import { FieldHelp } from "@/components/ui/field-help";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, BarChart3, ShieldCheck, ImageIcon } from "lucide-react";
 
@@ -255,17 +257,33 @@ const AdminProducts = () => {
               <DialogTitle className="font-display">{editing ? "Edit Product" : "Add Product"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 pt-2">
-              <div className="space-y-2">
-                <Label>Product Name</Label>
-                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <div className="space-y-1.5">
+                <Label htmlFor="prod-name">Product Name <span className="text-destructive">*</span></Label>
+                <FieldHelp id="prod-name-desc">The display name shown on recommendations and dashboards.</FieldHelp>
+                <Input
+                  id="prod-name"
+                  aria-describedby="prod-name-desc"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="e.g. Rosemary Scalp Serum"
+                  maxLength={120}
+                />
               </div>
-              <div className="space-y-2">
-                <Label>Brand</Label>
-                <Input value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} />
+              <div className="space-y-1.5">
+                <Label htmlFor="prod-brand">Brand</Label>
+                <FieldHelp id="prod-brand-desc">Manufacturer or brand label.</FieldHelp>
+                <Input
+                  id="prod-brand"
+                  aria-describedby="prod-brand-desc"
+                  value={form.brand}
+                  onChange={(e) => setForm({ ...form, brand: e.target.value })}
+                  placeholder="e.g. WishCare"
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label>Category</Label>
+                  <FieldHelp>Main product type — drives filters & icons.</FieldHelp>
                   <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -276,8 +294,9 @@ const AdminProducts = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label>Tier</Label>
+                  <FieldHelp>Price segment — used in plan-based recommendations.</FieldHelp>
                   <Select value={form.tier} onValueChange={(v) => setForm({ ...form, tier: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -288,16 +307,26 @@ const AdminProducts = () => {
                   </Select>
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Description</Label>
-                <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} />
+              <div className="space-y-1.5">
+                <Label htmlFor="prod-desc">Description</Label>
+                <FieldHelp id="prod-desc-desc">Short benefits summary shown under the product name.</FieldHelp>
+                <Textarea
+                  id="prod-desc"
+                  aria-describedby="prod-desc-desc"
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  rows={3}
+                  maxLength={500}
+                  placeholder="e.g. Strengthens roots, reduces shedding within 4 weeks…"
+                />
               </div>
 
               {/* Image Upload or URL */}
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label className="flex items-center gap-1.5">
                   <ImageIcon className="h-4 w-4" /> Product Image
                 </Label>
+                <FieldHelp>Upload a square image (JPG / PNG) or paste a public URL. Falls back to a placeholder if empty.</FieldHelp>
                 <div className="flex gap-2">
                   <Input
                     type="file"
@@ -333,40 +362,54 @@ const AdminProducts = () => {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Price Display</Label>
-                  <Input value={form.price_display} onChange={(e) => setForm({ ...form, price_display: e.target.value })} placeholder="₹499" />
+                <div className="space-y-1.5">
+                  <Label htmlFor="prod-price">Price Display</Label>
+                  <FieldHelp id="prod-price-desc">Free-form text shown to users (any currency / units).</FieldHelp>
+                  <Input id="prod-price" aria-describedby="prod-price-desc" value={form.price_display} onChange={(e) => setForm({ ...form, price_display: e.target.value })} placeholder="₹499" />
                 </div>
-                <div className="space-y-2">
-                  <Label>Sort Order</Label>
-                  <Input type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: parseInt(e.target.value) || 0 })} />
+                <div className="space-y-1.5">
+                  <Label htmlFor="prod-sort">Sort Order</Label>
+                  <FieldHelp id="prod-sort-desc">Lower numbers appear first.</FieldHelp>
+                  <Input id="prod-sort" aria-describedby="prod-sort-desc" type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: parseInt(e.target.value) || 0 })} />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Purchase URL</Label>
-                <Input value={form.purchase_url} onChange={(e) => setForm({ ...form, purchase_url: e.target.value })} placeholder="https://..." />
+              <div className="space-y-1.5">
+                <Label htmlFor="prod-url">Purchase URL</Label>
+                <FieldHelp id="prod-url-desc">External page where users can read more or buy.</FieldHelp>
+                <Input id="prod-url" aria-describedby="prod-url-desc" value={form.purchase_url} onChange={(e) => setForm({ ...form, purchase_url: e.target.value })} placeholder="https://..." />
               </div>
-              <div className="space-y-2">
-                <Label>Payment Link</Label>
-                <Input value={form.payment_link} onChange={(e) => setForm({ ...form, payment_link: e.target.value })} placeholder="https://rzp.io/..." />
+              <div className="space-y-1.5">
+                <Label htmlFor="prod-pay">Payment Link</Label>
+                <FieldHelp id="prod-pay-desc">Direct checkout URL (e.g. Razorpay link). Optional.</FieldHelp>
+                <Input id="prod-pay" aria-describedby="prod-pay-desc" value={form.payment_link} onChange={(e) => setForm({ ...form, payment_link: e.target.value })} placeholder="https://rzp.io/..." />
               </div>
-              <div className="space-y-2">
-                <Label>Target Scalp Types (comma-separated)</Label>
-                <Input
-                  value={form.target_scalp_types.join(", ")}
-                  onChange={(e) => setForm({ ...form, target_scalp_types: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
-                  placeholder="dry, balanced, slightly_oily, very_oily"
+              <div className="space-y-1.5">
+                <Label>Target Scalp Types</Label>
+                <FieldHelp>
+                  Scalp types this product is recommended for. Type a value and press <kbd className="px-1 rounded bg-muted text-[10px]">Enter</kbd> or <kbd className="px-1 rounded bg-muted text-[10px]">,</kbd> to add a tag. Duplicates are ignored.
+                </FieldHelp>
+                <TagInput
+                  value={form.target_scalp_types}
+                  onChange={(tags) => setForm({ ...form, target_scalp_types: tags })}
+                  placeholder="Dry Scalp, Oily Scalp, Sensitive Scalp"
                 />
               </div>
-              <div className="space-y-2">
-                <Label>Target Symptoms (comma-separated)</Label>
-                <Input
-                  value={form.target_symptoms.join(", ")}
-                  onChange={(e) => setForm({ ...form, target_symptoms: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
-                  placeholder="thinning, hair_fall, itching"
+              <div className="space-y-1.5">
+                <Label>Target Symptoms</Label>
+                <FieldHelp>
+                  Symptoms this product helps with. Press <kbd className="px-1 rounded bg-muted text-[10px]">Enter</kbd> or <kbd className="px-1 rounded bg-muted text-[10px]">,</kbd> to add. Pasting a comma-separated list also works.
+                </FieldHelp>
+                <TagInput
+                  value={form.target_symptoms}
+                  onChange={(tags) => setForm({ ...form, target_symptoms: tags })}
+                  placeholder="Hair Fall, Dandruff, Itching, Redness"
                 />
               </div>
-              <Button variant="hero" className="w-full" onClick={saveProduct} disabled={!form.name}>{editing ? "Save Changes" : "Add Product"}</Button>
+              <div className="sticky bottom-0 -mx-6 px-6 py-3 bg-background border-t">
+                <Button variant="hero" className="w-full" onClick={saveProduct} disabled={!form.name.trim()}>
+                  {editing ? "Save Changes" : "Add Product"}
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
