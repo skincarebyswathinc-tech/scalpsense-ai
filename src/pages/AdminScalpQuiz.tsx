@@ -867,7 +867,7 @@ const MessageRulesEditor: React.FC<MessageRulesEditorProps> = ({ rules, steps, o
                       → "{rule.message || "(no message)"}"
                     </div>
                   )}
-                </>
+                  </>
               )}
             </div>
           );
