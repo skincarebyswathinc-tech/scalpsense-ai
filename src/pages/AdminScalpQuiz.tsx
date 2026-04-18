@@ -641,8 +641,43 @@ const MessageRulesEditor: React.FC<MessageRulesEditorProps> = ({ rules, steps, o
           </p>
         )}
         {rules.map((rule, idx) => {
-          const isLegacy = !rule.question && !!rule.condition;
           const sev = SEVERITIES.find((s) => s.value === rule.severity) || SEVERITIES[0];
+          const wasLegacy = !rule.question && !!rule.condition;
+          // Auto-upgrade legacy rules so admins can fully edit them.
+          // We try to parse common legacy patterns: "col == value", "col_count > N".
+          const upgradeLegacy = () => {
+            const cond = rule.condition || "";
+            let patch: Partial<IssueRule> = {
+              name: rule.name || "Migrated rule",
+              severity: rule.severity || "info",
+              priority: rule.priority ?? 100,
+              premium_only: !!rule.premium_only,
+              active: rule.active !== false,
+              message: rule.message || rule.template || "",
+            };
+            const eq = cond.match(/^\s*(\w+)\s*==\s*(.+?)\s*$/);
+            const cntGt = cond.match(/^\s*(\w+)_count\s*>\s*(\d+)\s*$/);
+            const ltN = cond.match(/^\s*(\w+)\s*<\s*(\d+)\s*$/);
+            if (eq) {
+              patch.question = eq[1];
+              patch.operator = "equals";
+              patch.value = eq[2];
+            } else if (cntGt) {
+              patch.question = cntGt[1];
+              patch.operator = "count_gt";
+              patch.value = cntGt[2];
+            } else if (ltN) {
+              patch.question = ltN[1];
+              patch.operator = "less_than";
+              patch.value = ltN[2];
+            } else {
+              patch.question = "";
+              patch.operator = "equals";
+              patch.value = "";
+            }
+            patch.condition = undefined;
+            updateAt(idx, patch);
+          };
           return (
             <div
               key={idx}
