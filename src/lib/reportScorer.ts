@@ -39,24 +39,76 @@ export function computeReportFromConfig(d: AssessmentData, scoring: ScoringConfi
   const score = Math.round(Math.max(0, Math.min(100, raw)));
   const scalpType = scoring.scalp_feel_labels[d.scalp_feel] || "Unknown";
 
-  // Generate issues from rules
-  const issues: string[] = [];
-  for (const rule of scoring.issue_rules || []) {
-    if (rule.condition === "symptoms_count > 0" && d.symptoms.length > 0) {
-      const t = rule.template || "";
-      issues.push(t.replace("{count}", String(d.symptoms.length)).replace("{s}", d.symptoms.length > 1 ? "s" : ""));
-    } else if (rule.condition === "hair_changes_count > 0" && d.hair_changes.length > 0) {
-      const t = rule.template || "";
-      issues.push(t.replace("{count}", String(d.hair_changes.length)).replace("{s}", d.hair_changes.length > 1 ? "s" : ""));
-    } else if (rule.condition === `hair_shedding == ${d.hair_shedding}` && rule.message) {
-      issues.push(rule.message);
-    } else if (rule.condition === `stress_level == ${d.stress_level}` && rule.message) {
-      issues.push(rule.message);
-    } else if (rule.condition === `scalp_feel == ${d.scalp_feel}` && rule.message) {
-      issues.push(rule.message);
-    } else if (rule.condition === "sleep_hours < 6" && d.sleep_hours < 6 && rule.message) {
-      issues.push(rule.message);
+  // Generate issues from rules — supports both legacy string-conditions
+  // and the structured rule format edited in the admin no-code builder.
+  const ctx: Record<string, any> = d as any;
+  const formatTemplate = (tpl: string, count: number) =>
+    tpl.replace("{count}", String(count)).replace("{s}", count > 1 ? "s" : "");
+
+  const evalStructured = (rule: any): string | null => {
+    if (rule.active === false) return null;
+    const col = rule.question;
+    if (!col) return null;
+    const fieldVal = ctx[col];
+    const op = rule.operator;
+    const target = rule.value;
+    const matched = (() => {
+      switch (op) {
+        case "equals":
+          return String(fieldVal) === String(target);
+        case "not_equals":
+          return String(fieldVal) !== String(target);
+        case "greater_than":
+          return Number(fieldVal) > Number(target);
+        case "less_than":
+          return Number(fieldVal) < Number(target);
+        case "between": {
+          const [min, max] = String(target).split(",").map(Number);
+          return Number(fieldVal) >= min && Number(fieldVal) <= max;
+        }
+        case "contains":
+          return Array.isArray(fieldVal)
+            ? fieldVal.map(String).includes(String(target))
+            : String(fieldVal ?? "").includes(String(target));
+        case "count_gt":
+          return Array.isArray(fieldVal) && fieldVal.length > Number(target);
+        case "count_lt":
+          return Array.isArray(fieldVal) && fieldVal.length < Number(target);
+        default:
+          return false;
+      }
+    })();
+    if (!matched) return null;
+    const tpl = rule.message || rule.template || "";
+    if (Array.isArray(fieldVal) && (tpl.includes("{count}") || tpl.includes("{s}"))) {
+      return formatTemplate(tpl, fieldVal.length);
     }
+    return tpl || null;
+  };
+
+  const evalLegacy = (rule: any): string | null => {
+    const cond = rule.condition;
+    if (!cond) return null;
+    if (cond === "symptoms_count > 0" && d.symptoms.length > 0) {
+      return formatTemplate(rule.template || "", d.symptoms.length);
+    }
+    if (cond === "hair_changes_count > 0" && d.hair_changes.length > 0) {
+      return formatTemplate(rule.template || "", d.hair_changes.length);
+    }
+    if (cond === `hair_shedding == ${d.hair_shedding}` && rule.message) return rule.message;
+    if (cond === `stress_level == ${d.stress_level}` && rule.message) return rule.message;
+    if (cond === `scalp_feel == ${d.scalp_feel}` && rule.message) return rule.message;
+    if (cond === "sleep_hours < 6" && d.sleep_hours < 6 && rule.message) return rule.message;
+    return null;
+  };
+
+  const rulesSorted = [...(scoring.issue_rules || [])].sort(
+    (a: any, b: any) => (a.priority ?? 100) - (b.priority ?? 100),
+  );
+  const issues: string[] = [];
+  for (const rule of rulesSorted as any[]) {
+    const msg = rule.question ? evalStructured(rule) : evalLegacy(rule);
+    if (msg) issues.push(msg);
   }
 
   const th = scoring.improvement_thresholds;
