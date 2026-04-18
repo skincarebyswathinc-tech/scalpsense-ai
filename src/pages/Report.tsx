@@ -109,7 +109,7 @@ const Report = () => {
     toast({ title: "Report unlocked! 🎉" });
   };
 
-  const report = assessment && quizConfig ? computeReportFromConfig(assessment, quizConfig.scoring) : null;
+  const report = assessment && quizConfig ? computeReportFromConfig(assessment, quizConfig.scoring, quizConfig.steps) : null;
   const shareUrl = referralCode
     ? `${window.location.origin}/quiz?ref=${referralCode}`
     : `${window.location.origin}/quiz`;
