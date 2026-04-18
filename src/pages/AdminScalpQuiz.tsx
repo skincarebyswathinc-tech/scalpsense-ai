@@ -641,8 +641,43 @@ const MessageRulesEditor: React.FC<MessageRulesEditorProps> = ({ rules, steps, o
           </p>
         )}
         {rules.map((rule, idx) => {
-          const isLegacy = !rule.question && !!rule.condition;
           const sev = SEVERITIES.find((s) => s.value === rule.severity) || SEVERITIES[0];
+          const wasLegacy = !rule.question && !!rule.condition;
+          // Auto-upgrade legacy rules so admins can fully edit them.
+          // We try to parse common legacy patterns: "col == value", "col_count > N".
+          const upgradeLegacy = () => {
+            const cond = rule.condition || "";
+            let patch: Partial<IssueRule> = {
+              name: rule.name || "Migrated rule",
+              severity: rule.severity || "info",
+              priority: rule.priority ?? 100,
+              premium_only: !!rule.premium_only,
+              active: rule.active !== false,
+              message: rule.message || rule.template || "",
+            };
+            const eq = cond.match(/^\s*(\w+)\s*==\s*(.+?)\s*$/);
+            const cntGt = cond.match(/^\s*(\w+)_count\s*>\s*(\d+)\s*$/);
+            const ltN = cond.match(/^\s*(\w+)\s*<\s*(\d+)\s*$/);
+            if (eq) {
+              patch.question = eq[1];
+              patch.operator = "equals";
+              patch.value = eq[2];
+            } else if (cntGt) {
+              patch.question = cntGt[1];
+              patch.operator = "count_gt";
+              patch.value = cntGt[2];
+            } else if (ltN) {
+              patch.question = ltN[1];
+              patch.operator = "less_than";
+              patch.value = ltN[2];
+            } else {
+              patch.question = "";
+              patch.operator = "equals";
+              patch.value = "";
+            }
+            patch.condition = undefined;
+            updateAt(idx, patch);
+          };
           return (
             <div
               key={idx}
@@ -659,7 +694,7 @@ const MessageRulesEditor: React.FC<MessageRulesEditorProps> = ({ rules, steps, o
                       <Crown className="h-3 w-3" /> Premium only
                     </Badge>
                   )}
-                  {isLegacy && <Badge variant="outline" className="text-xs">Legacy</Badge>}
+                  {wasLegacy && <Badge variant="outline" className="text-xs">Legacy</Badge>}
                   {rule.active === false && <Badge variant="destructive">Disabled</Badge>}
                 </div>
                 <div className="flex items-center gap-1">
@@ -675,24 +710,23 @@ const MessageRulesEditor: React.FC<MessageRulesEditorProps> = ({ rules, steps, o
                 </div>
               </div>
 
-              {isLegacy ? (
-                <div className="space-y-2 text-sm">
-                  <p className="font-mono text-xs text-muted-foreground">
-                    Condition: {rule.condition}
-                  </p>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Output Message</Label>
-                    <FieldHelp>
-                      Legacy string-based rule. Edit the message below or
-                      delete and rebuild it as a structured rule.
+              {wasLegacy && (
+                <div className="rounded-md border border-dashed border-primary/40 bg-primary/5 p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div className="text-xs text-muted-foreground">
+                    <span className="font-medium text-foreground">Legacy rule:</span>{" "}
+                    <code className="px-1 rounded bg-muted">{rule.condition}</code>
+                    <FieldHelp className="mt-1">
+                      Click "Convert to editable rule" to unlock the full no-code
+                      editor (question, operator, value, severity, priority…).
                     </FieldHelp>
-                    <Input
-                      value={rule.message || rule.template || ""}
-                      onChange={(e) => updateAt(idx, { message: e.target.value })}
-                    />
                   </div>
+                  <Button size="sm" variant="hero" onClick={upgradeLegacy}>
+                    Convert to editable rule
+                  </Button>
                 </div>
-              ) : (
+              )}
+              {/* Structured editor — works for new rules and converted legacy rules */}
+              {!wasLegacy && (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="space-y-1.5">
@@ -829,7 +863,7 @@ const MessageRulesEditor: React.FC<MessageRulesEditorProps> = ({ rules, steps, o
                       → "{rule.message || "(no message)"}"
                     </div>
                   )}
-                </>
+                  </>
               )}
             </div>
           );

@@ -761,6 +761,33 @@ export type Database = {
         }
         Relationships: []
       }
+      symptom_logs: {
+        Row: {
+          id: string
+          logged_at: string
+          notes: string | null
+          severity: number
+          symptoms: string[]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          logged_at?: string
+          notes?: string | null
+          severity?: number
+          symptoms?: string[]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          logged_at?: string
+          notes?: string | null
+          severity?: number
+          symptoms?: string[]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_reports: {
         Row: {
           created_at: string
