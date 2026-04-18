@@ -694,7 +694,7 @@ const MessageRulesEditor: React.FC<MessageRulesEditorProps> = ({ rules, steps, o
                       <Crown className="h-3 w-3" /> Premium only
                     </Badge>
                   )}
-                  {isLegacy && <Badge variant="outline" className="text-xs">Legacy</Badge>}
+                  {wasLegacy && <Badge variant="outline" className="text-xs">Legacy</Badge>}
                   {rule.active === false && <Badge variant="destructive">Disabled</Badge>}
                 </div>
                 <div className="flex items-center gap-1">
