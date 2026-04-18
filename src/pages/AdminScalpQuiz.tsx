@@ -537,4 +537,306 @@ const AdminScalpQuiz = () => {
   );
 };
 
+// ─────────────────────────────────────────────────────────────────────────
+// Message Rules — no-code rule builder for the report's issue messages.
+// Each rule answers: "If this question/answer matches → show this message."
+// Persisted into scoring.issue_rules (mixed legacy + structured rules).
+// ─────────────────────────────────────────────────────────────────────────
+
+type Operator = NonNullable<IssueRule["operator"]>;
+
+const OPERATORS: { value: Operator; label: string; help: string }[] = [
+  { value: "equals", label: "equals", help: "Exact match (e.g. answer is exactly 'high')" },
+  { value: "not_equals", label: "not equals", help: "Anything except this value" },
+  { value: "greater_than", label: "greater than", help: "Numeric — answer > value" },
+  { value: "less_than", label: "less than", help: "Numeric — answer < value" },
+  { value: "between", label: "between", help: "Numeric range. Value format: min,max" },
+  { value: "contains", label: "contains", help: "For multi-select / text answers" },
+  { value: "count_gt", label: "count greater than", help: "Multi-select length > value" },
+  { value: "count_lt", label: "count less than", help: "Multi-select length < value" },
+];
+
+const SEVERITIES: { value: NonNullable<IssueRule["severity"]>; label: string; tone: string }[] = [
+  { value: "info", label: "Info", tone: "bg-muted text-foreground" },
+  { value: "warning", label: "Warning", tone: "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100" },
+  { value: "critical", label: "Critical", tone: "bg-destructive/15 text-destructive" },
+];
+
+interface MessageRulesEditorProps {
+  rules: IssueRule[];
+  steps: QuizStep[];
+  onChange: (rules: IssueRule[]) => void;
+}
+
+const MessageRulesEditor: React.FC<MessageRulesEditorProps> = ({ rules, steps, onChange }) => {
+  // Build the list of selectable "questions" (db_columns) from the quiz steps.
+  const questionOptions = React.useMemo(() => {
+    const out: { value: string; label: string }[] = [];
+    const seen = new Set<string>();
+    const push = (col?: string, label?: string) => {
+      if (!col || seen.has(col)) return;
+      seen.add(col);
+      out.push({ value: col, label: label ? `${label} (${col})` : col });
+    };
+    steps.forEach((s) => {
+      push(s.db_column, s.title);
+      (s.fields || []).forEach((f: any) => push(f.db_column, f.label));
+    });
+    return out.sort((a, b) => a.label.localeCompare(b.label));
+  }, [steps]);
+
+  const updateAt = (idx: number, patch: Partial<IssueRule>) => {
+    onChange(rules.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
+  };
+  const removeAt = (idx: number) => onChange(rules.filter((_, i) => i !== idx));
+  const move = (idx: number, dir: -1 | 1) => {
+    const j = idx + dir;
+    if (j < 0 || j >= rules.length) return;
+    const arr = [...rules];
+    [arr[idx], arr[j]] = [arr[j], arr[idx]];
+    onChange(arr);
+  };
+  const addRule = () => {
+    onChange([
+      ...rules,
+      {
+        name: "New rule",
+        question: questionOptions[0]?.value || "",
+        operator: "equals",
+        value: "",
+        message: "",
+        severity: "info",
+        priority: rules.length + 1,
+        premium_only: false,
+        active: true,
+      },
+    ]);
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              Message Rules
+            </CardTitle>
+            <CardDescription>
+              No-code rule builder. When a rule's condition matches a user's
+              answer, its message is shown in the report. Rules are evaluated
+              in priority order (lowest number first).
+            </CardDescription>
+          </div>
+          <Button size="sm" variant="hero" onClick={addRule}>
+            <Plus className="h-3 w-3 mr-1" /> Add Rule
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {rules.length === 0 && (
+          <p className="text-sm text-muted-foreground italic">
+            No rules yet — add your first rule to start showing personalised
+            messages in the report.
+          </p>
+        )}
+        {rules.map((rule, idx) => {
+          const isLegacy = !rule.question && !!rule.condition;
+          const sev = SEVERITIES.find((s) => s.value === rule.severity) || SEVERITIES[0];
+          return (
+            <div
+              key={idx}
+              className={`rounded-lg border p-4 space-y-3 ${
+                rule.active === false ? "opacity-60 bg-muted/30" : "bg-card"
+              }`}
+            >
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="outline">#{idx + 1}</Badge>
+                  <Badge className={sev.tone}>{sev.label}</Badge>
+                  {rule.premium_only && (
+                    <Badge variant="secondary" className="gap-1">
+                      <Crown className="h-3 w-3" /> Premium only
+                    </Badge>
+                  )}
+                  {isLegacy && <Badge variant="outline" className="text-xs">Legacy</Badge>}
+                  {rule.active === false && <Badge variant="destructive">Disabled</Badge>}
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button size="icon" variant="ghost" onClick={() => move(idx, -1)} disabled={idx === 0}>
+                    <ChevronUp className="h-4 w-4" />
+                  </Button>
+                  <Button size="icon" variant="ghost" onClick={() => move(idx, 1)} disabled={idx === rules.length - 1}>
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                  <Button size="icon" variant="ghost" onClick={() => removeAt(idx)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              </div>
+
+              {isLegacy ? (
+                <div className="space-y-2 text-sm">
+                  <p className="font-mono text-xs text-muted-foreground">
+                    Condition: {rule.condition}
+                  </p>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Output Message</Label>
+                    <FieldHelp>
+                      Legacy string-based rule. Edit the message below or
+                      delete and rebuild it as a structured rule.
+                    </FieldHelp>
+                    <Input
+                      value={rule.message || rule.template || ""}
+                      onChange={(e) => updateAt(idx, { message: e.target.value })}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Rule Name</Label>
+                      <FieldHelp>For your reference only — never shown to users.</FieldHelp>
+                      <Input
+                        value={rule.name || ""}
+                        onChange={(e) => updateAt(idx, { name: e.target.value })}
+                        placeholder="e.g. Heavy shedding warning"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Question</Label>
+                      <FieldHelp>The quiz answer (db column) this rule looks at.</FieldHelp>
+                      <Select
+                        value={rule.question || ""}
+                        onValueChange={(v) => updateAt(idx, { question: v })}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Pick a question…" /></SelectTrigger>
+                        <SelectContent>
+                          {questionOptions.map((q) => (
+                            <SelectItem key={q.value} value={q.value}>{q.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Operator</Label>
+                      <FieldHelp>
+                        {OPERATORS.find((o) => o.value === rule.operator)?.help || "How to compare."}
+                      </FieldHelp>
+                      <Select
+                        value={rule.operator || "equals"}
+                        onValueChange={(v) => updateAt(idx, { operator: v as Operator })}
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {OPERATORS.map((o) => (
+                            <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5 md:col-span-2">
+                      <Label className="text-xs">Value</Label>
+                      <FieldHelp>
+                        {rule.operator === "between"
+                          ? "Two numbers separated by a comma (e.g. 100,150)."
+                          : "The value to compare the answer against."}
+                      </FieldHelp>
+                      <Input
+                        value={String(rule.value ?? "")}
+                        onChange={(e) => updateAt(idx, { value: e.target.value })}
+                        placeholder={
+                          rule.operator === "between"
+                            ? "100,150"
+                            : rule.operator?.startsWith("count_")
+                            ? "0"
+                            : "high"
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Output Message</Label>
+                    <FieldHelp>
+                      Shown in the report when this rule matches. Use{" "}
+                      <code className="px-1 rounded bg-muted text-[10px]">{"{count}"}</code> and{" "}
+                      <code className="px-1 rounded bg-muted text-[10px]">{"{s}"}</code> for
+                      array-based rules (e.g. "{"{count}"} symptom{"{s}"} detected").
+                    </FieldHelp>
+                    <Textarea
+                      rows={2}
+                      value={rule.message || rule.template || ""}
+                      onChange={(e) => updateAt(idx, { message: e.target.value })}
+                      placeholder="e.g. Heavy hair shedding (150+ strands/day)"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 items-end">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Priority</Label>
+                      <FieldHelp>Lower runs first.</FieldHelp>
+                      <Input
+                        type="number"
+                        min={1}
+                        value={rule.priority ?? 100}
+                        onChange={(e) => updateAt(idx, { priority: parseInt(e.target.value) || 100 })}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Severity</Label>
+                      <FieldHelp>Visual tag in the report.</FieldHelp>
+                      <Select
+                        value={rule.severity || "info"}
+                        onValueChange={(v) => updateAt(idx, { severity: v as any })}
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {SEVERITIES.map((s) => (
+                            <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-center gap-2 pt-5">
+                      <Switch
+                        id={`premium-${idx}`}
+                        checked={!!rule.premium_only}
+                        onCheckedChange={(v) => updateAt(idx, { premium_only: v })}
+                      />
+                      <Label htmlFor={`premium-${idx}`} className="text-xs">Premium only</Label>
+                    </div>
+                    <div className="flex items-center gap-2 pt-5">
+                      <Switch
+                        id={`active-${idx}`}
+                        checked={rule.active !== false}
+                        onCheckedChange={(v) => updateAt(idx, { active: v })}
+                      />
+                      <Label htmlFor={`active-${idx}`} className="text-xs">Active</Label>
+                    </div>
+                  </div>
+
+                  {rule.question && rule.operator && (
+                    <div className="rounded-md bg-muted/50 px-3 py-2 text-xs font-mono text-muted-foreground">
+                      <span className="text-foreground">Preview:</span> if{" "}
+                      <span className="text-primary">{rule.question}</span>{" "}
+                      <span>{rule.operator}</span>{" "}
+                      <span className="text-primary">{String(rule.value ?? "")}</span>{" "}
+                      → "{rule.message || "(no message)"}"
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
+  );
+};
+
 export default AdminScalpQuiz;
