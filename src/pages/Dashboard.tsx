@@ -19,7 +19,9 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { motion } from "framer-motion";
 import RecommendedProducts from "@/components/dashboard/RecommendedProducts";
 import RecoveryKits from "@/components/dashboard/RecoveryKits";
+import StreakCard from "@/components/dashboard/StreakCard";
 import SubmitReview from "@/components/SubmitReview";
+import { InfoTip } from "@/components/ui/info-tip";
 
 interface RoutineTask {
   id: string;
@@ -210,7 +212,15 @@ const Dashboard = () => {
                       <span className="text-xs text-muted-foreground font-body">/100</span>
                     </div>
                   </div>
-                  <p className="font-body text-xs uppercase tracking-wider text-muted-foreground mt-2">Recovery Score</p>
+                  <p className="font-body text-xs uppercase tracking-wider text-muted-foreground mt-2 flex items-center gap-1">
+                    Recovery Score
+                    <InfoTip>
+                      A 0–100 score combining your habit consistency, hair-fall
+                      logs, symptom severity, weekly protocol completion, and
+                      uploaded photos. Updated automatically each week. Higher
+                      = healthier scalp trajectory.
+                    </InfoTip>
+                  </p>
                 </div>
 
                 {/* Score Details */}
@@ -260,7 +270,14 @@ const Dashboard = () => {
         {chartData.length > 1 && (
           <Card className="shadow-card">
             <CardHeader className="pb-2">
-              <CardTitle className="font-display text-lg flex items-center gap-2"><BarChart3 className="h-5 w-5 text-primary" /> Score Trend</CardTitle>
+              <CardTitle className="font-display text-lg flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-primary" /> Score Trend
+                <InfoTip>
+                  Your weekly recovery score over time. An upward slope means
+                  your routine is working; a flat or dipping line is a signal
+                  to log symptoms more often or revisit your habits.
+                </InfoTip>
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={200}>
@@ -281,24 +298,53 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="shadow-card">
             <CardHeader className="pb-2">
-              <CardDescription className="font-body text-xs uppercase tracking-wider">Recovery Week</CardDescription>
+              <CardDescription className="font-body text-xs uppercase tracking-wider flex items-center gap-1">
+                Recovery Week
+                <InfoTip>
+                  Your scalp recovery program is structured into 6 weeks. Each
+                  week unlocks new protocol tasks. Stick with it — most users
+                  see visible improvement around week 4.
+                </InfoTip>
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-display font-bold text-foreground">{recoveryWeek}<span className="text-lg text-muted-foreground">/6</span></div>
               <Progress value={weekProgress} className="mt-3 h-2" />
+              <p className="text-xs text-muted-foreground mt-2">
+                {recoveryWeek <= 2 && "Foundation phase — focus on consistency over intensity."}
+                {recoveryWeek > 2 && recoveryWeek <= 4 && "Active recovery — your follicles are responding."}
+                {recoveryWeek > 4 && "Final stretch — visible results are forming. Stay the course!"}
+              </p>
             </CardContent>
           </Card>
 
           <Card className="shadow-card">
             <CardHeader className="pb-2">
-              <CardDescription className="font-body text-xs uppercase tracking-wider">Completed Tasks</CardDescription>
+              <CardDescription className="font-body text-xs uppercase tracking-wider flex items-center gap-1">
+                Completed Tasks
+                <InfoTip>
+                  How many of your assigned protocol tasks you've checked off.
+                  Aim for 80%+ each week — every completed task feeds directly
+                  into your Recovery Score.
+                </InfoTip>
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-display font-bold text-foreground">{completedTasks}<span className="text-lg text-muted-foreground">/{totalTasks || "—"}</span></div>
               <Progress value={totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0} className="mt-3 h-2" />
+              <p className="text-xs text-muted-foreground mt-2">
+                {totalTasks === 0
+                  ? "Take the scalp scan to generate your protocol."
+                  : completedTasks === totalTasks
+                  ? "🎉 Perfect week! Your routine is dialled in."
+                  : `${totalTasks - completedTasks} task${totalTasks - completedTasks === 1 ? "" : "s"} left this week.`}
+              </p>
             </CardContent>
           </Card>
         </div>
+
+        {/* Streak — encourages daily consistency, the #1 predictor of recovery */}
+        <StreakCard />
 
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-3">
