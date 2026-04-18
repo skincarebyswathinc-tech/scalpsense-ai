@@ -558,7 +558,7 @@ const OPERATORS: { value: Operator; label: string; help: string }[] = [
 
 const SEVERITIES: { value: NonNullable<IssueRule["severity"]>; label: string; tone: string }[] = [
   { value: "info", label: "Info", tone: "bg-muted text-foreground" },
-  { value: "warning", label: "Warning", tone: "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100" },
+  { value: "warning", label: "Warning", tone: "bg-secondary text-secondary-foreground" },
   { value: "critical", label: "Critical", tone: "bg-destructive/15 text-destructive" },
 ];
 
