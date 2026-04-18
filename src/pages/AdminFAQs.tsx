@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { FieldHelp } from "@/components/ui/field-help";
 import { ShieldCheck, Plus, Pencil, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 
 interface FAQ {
@@ -137,21 +138,47 @@ const AdminFAQs = () => {
               <DialogTitle className="font-display">{editing ? "Edit FAQ" : "Add FAQ"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 pt-2">
-              <div className="space-y-2">
-                <Label>Question</Label>
-                <Input value={form.question} onChange={(e) => setForm({ ...form, question: e.target.value })} />
+              <div className="space-y-1.5">
+                <Label htmlFor="faq-q">Question <span className="text-destructive">*</span></Label>
+                <FieldHelp id="faq-q-desc">Phrased as a real user question. Keep it under ~120 characters.</FieldHelp>
+                <Input
+                  id="faq-q"
+                  aria-describedby="faq-q-desc"
+                  value={form.question}
+                  onChange={(e) => setForm({ ...form, question: e.target.value })}
+                  placeholder="e.g. How long until I see results?"
+                  maxLength={200}
+                />
               </div>
-              <div className="space-y-2">
-                <Label>Answer</Label>
-                <Textarea value={form.answer} onChange={(e) => setForm({ ...form, answer: e.target.value })} rows={4} />
+              <div className="space-y-1.5">
+                <Label htmlFor="faq-a">Answer <span className="text-destructive">*</span></Label>
+                <FieldHelp id="faq-a-desc">Plain-language reply. You can use multiple sentences.</FieldHelp>
+                <Textarea
+                  id="faq-a"
+                  aria-describedby="faq-a-desc"
+                  value={form.answer}
+                  onChange={(e) => setForm({ ...form, answer: e.target.value })}
+                  rows={4}
+                  maxLength={1000}
+                  placeholder="e.g. Most users see initial improvements within 4–6 weeks of consistent use."
+                />
               </div>
-              <div className="space-y-2">
-                <Label>Sort Order</Label>
-                <Input type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: parseInt(e.target.value) || 0 })} />
+              <div className="space-y-1.5">
+                <Label htmlFor="faq-sort">Sort Order</Label>
+                <FieldHelp id="faq-sort-desc">Lower numbers appear first in the FAQ list.</FieldHelp>
+                <Input
+                  id="faq-sort"
+                  aria-describedby="faq-sort-desc"
+                  type="number"
+                  value={form.sort_order}
+                  onChange={(e) => setForm({ ...form, sort_order: parseInt(e.target.value) || 0 })}
+                />
               </div>
-              <Button variant="hero" className="w-full" onClick={save} disabled={!form.question || !form.answer}>
-                {editing ? "Save Changes" : "Add FAQ"}
-              </Button>
+              <div className="sticky bottom-0 -mx-6 px-6 py-3 bg-background border-t">
+                <Button variant="hero" className="w-full" onClick={save} disabled={!form.question.trim() || !form.answer.trim()}>
+                  {editing ? "Save Changes" : "Add FAQ"}
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
