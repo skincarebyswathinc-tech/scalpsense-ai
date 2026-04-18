@@ -505,23 +505,11 @@ const AdminScalpQuiz = () => {
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Issue Detection Rules</CardTitle>
-                    <CardDescription>Conditions that trigger issue alerts in the report</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {scoring.issue_rules?.map((rule, idx) => (
-                      <div key={idx} className="p-3 bg-muted/40 rounded-lg flex items-start gap-3">
-                        <AlertTriangle className="h-4 w-4 text-amber-500 mt-1 flex-shrink-0" />
-                        <div className="flex-1 space-y-1">
-                          <p className="text-xs font-mono text-muted-foreground">{rule.condition}</p>
-                          <p className="text-sm">{rule.message || rule.template}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
+                <MessageRulesEditor
+                  rules={(scoring.issue_rules || []) as IssueRule[]}
+                  steps={steps}
+                  onChange={(rules) => updateScoringField("issue_rules", rules)}
+                />
 
                 <Card>
                   <CardHeader>
