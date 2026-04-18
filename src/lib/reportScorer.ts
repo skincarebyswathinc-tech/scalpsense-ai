@@ -177,5 +177,5 @@ export function computeReportFromConfig(
     : score < (th.good || 80) ? (msgs.good || "")
     : (msgs.excellent || "");
 
-  return { score, scalpType, issues, improvement };
+  return { score, scalpType, issues, improvement, breakdown };
 }
