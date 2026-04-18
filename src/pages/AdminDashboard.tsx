@@ -265,6 +265,11 @@ const AdminDashboard = () => {
             <CardHeader className="pb-2">
               <CardTitle className="font-display text-lg flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-primary" /> Revenue Growth
+                <InfoTip>
+                  Monthly revenue trend computed from premium subscriptions
+                  (₹399 × active premium users per month). Use this to spot
+                  growth or sudden drops in paid signups.
+                </InfoTip>
               </CardTitle>
               <CardDescription className="font-body text-xs">Monthly revenue trend</CardDescription>
             </CardHeader>
@@ -294,6 +299,11 @@ const AdminDashboard = () => {
             <CardHeader className="pb-2">
               <CardTitle className="font-display text-lg flex items-center gap-2">
                 <Activity className="h-5 w-5 text-primary" /> Plan Distribution
+                <InfoTip>
+                  Share of users on each plan: Premium (paying), Free (active
+                  but not paying), and Churned (expired/cancelled). A healthy
+                  product keeps the Churned slice small.
+                </InfoTip>
               </CardTitle>
               <CardDescription className="font-body text-xs">User breakdown by plan</CardDescription>
             </CardHeader>
@@ -335,6 +345,11 @@ const AdminDashboard = () => {
             <CardHeader className="pb-2">
               <CardTitle className="font-display text-lg flex items-center gap-2">
                 <Package className="h-5 w-5 text-primary" /> Product Click Tracking
+                <InfoTip>
+                  Counts how many times users clicked the "Buy" button on each
+                  recommended product. High clicks = strong purchase intent —
+                  use this to prioritise inventory and partnerships.
+                </InfoTip>
               </CardTitle>
               <CardDescription className="font-body text-xs">Purchase clicks by product</CardDescription>
             </CardHeader>
@@ -369,6 +384,11 @@ const AdminDashboard = () => {
             <CardHeader className="pb-2">
               <CardTitle className="font-display text-lg flex items-center gap-2">
                 <Gift className="h-5 w-5 text-primary" /> Top Referral Sources
+                <InfoTip>
+                  Your best advocates — users whose referral codes brought in
+                  the most clicks and signups. Reward the top entries to keep
+                  your viral loop healthy.
+                </InfoTip>
               </CardTitle>
               <CardDescription className="font-body text-xs">By conversions & clicks</CardDescription>
             </CardHeader>
@@ -404,6 +424,11 @@ const AdminDashboard = () => {
           <CardHeader className="pb-2">
             <CardTitle className="font-display text-lg flex items-center gap-2">
               <Users className="h-5 w-5 text-primary" /> User Growth
+              <InfoTip>
+                New signups per month, regardless of plan. Pair this with the
+                conversion rate KPI to see if more traffic is also turning into
+                premium customers.
+              </InfoTip>
             </CardTitle>
             <CardDescription className="font-body text-xs">New signups over time</CardDescription>
           </CardHeader>
