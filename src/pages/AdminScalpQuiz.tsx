@@ -619,7 +619,7 @@ const MessageRulesEditor: React.FC<MessageRulesEditorProps> = ({ rules, steps, o
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
             <CardTitle className="text-lg flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <AlertTriangle className="h-4 w-4 text-primary" />
               Message Rules
             </CardTitle>
             <CardDescription>
