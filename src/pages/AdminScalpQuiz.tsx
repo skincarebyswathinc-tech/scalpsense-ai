@@ -14,6 +14,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { FieldHelp } from "@/components/ui/field-help";
+import { EditableScoreMap } from "@/components/admin/EditableScoreMap";
+import { InfoTip } from "@/components/ui/info-tip";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/landing/Navbar";
 import {
@@ -379,104 +381,109 @@ const AdminScalpQuiz = () => {
           <TabsContent value="scoring" className="space-y-6">
             {scoring && (
               <>
+                <Card className="border-primary/20 bg-accent/5">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      Scoring Weights — fully configurable
+                      <InfoTip>
+                        Every block below is a free-form key→value map you can
+                        edit, rename, add to, or delete from. Saved changes
+                        flow into the live report scoring engine immediately.
+                        Per-step weights live on the "Quiz Steps" tab.
+                      </InfoTip>
+                    </CardTitle>
+                    <CardDescription>
+                      Add new fields, edit values, or remove entries. Field
+                      names (keys) must match the answer values used in the
+                      quiz steps (e.g. <code className="px-1 bg-muted rounded">150_plus</code>).
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+
+                <EditableScoreMap
+                  title="Factor Weights"
+                  description="Should sum to 1.0 — controls each factor's impact on the final 0-100 score."
+                  help="Each row is one factor (shedding, scalp_feel, stress, etc.) and how much it contributes to the final score. Weights are normalized internally."
+                  value={scoring.weights}
+                  onChange={v => updateScoringField("weights", v)}
+                  min={0} max={1} step={0.05}
+                  keyPlaceholder="shedding"
+                  valuePlaceholder="0.25"
+                />
+
+                <EditableScoreMap
+                  title="Shedding Scores"
+                  description="Score (0-100) awarded for each shedding-level answer."
+                  help="Maps a shedding answer value (e.g. less_than_50, 50_100, 150_plus) to the score it contributes. Higher = healthier."
+                  value={scoring.shedding_scores}
+                  onChange={v => updateScoringField("shedding_scores", v)}
+                  keyPlaceholder="150_plus"
+                />
+
+                <EditableScoreMap
+                  title="Scalp Feel Scores"
+                  description="Score (0-100) awarded for each scalp-feel answer."
+                  help="Maps each scalp_feel answer (dry, balanced, slightly_oily, very_oily) to its score."
+                  value={scoring.scalp_feel_scores}
+                  onChange={v => updateScoringField("scalp_feel_scores", v)}
+                  keyPlaceholder="balanced"
+                />
+
+                <EditableScoreMap
+                  title="Stress Scores"
+                  description="Score (0-100) awarded for each stress level answer."
+                  help="Maps each stress_level answer (low, medium, high) to its score. Higher stress should typically get a lower score."
+                  value={scoring.stress_scores}
+                  onChange={v => updateScoringField("stress_scores", v)}
+                  keyPlaceholder="high"
+                />
+
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Factor Weights</CardTitle>
-                    <CardDescription>Must sum to 1.0 — controls each factor's impact on final score</CardDescription>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      Penalties & Sleep Thresholds
+                      <InfoTip>
+                        Numeric tuning knobs that don't fit a key→value map.
+                        Symptoms and reported changes deduct points (capped at
+                        the max). Sleep thresholds determine the score awarded
+                        based on hours slept.
+                      </InfoTip>
+                    </CardTitle>
+                    <CardDescription>Fine-tune penalties and sleep scoring bands.</CardDescription>
                   </CardHeader>
                   <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {Object.entries(scoring.weights).map(([key, val]) => (
-                      <div key={key} className="space-y-1">
-                        <Label className="text-xs capitalize">{key.replace("_", " ")}</Label>
-                        <Input
-                          type="number" step="0.05" min="0" max="1"
-                          value={val}
-                          onChange={e => updateScoringField(`weights.${key}`, parseFloat(e.target.value) || 0)}
-                        />
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Shedding Scores</CardTitle>
-                    <CardDescription>Score (0-100) for each shedding level</CardDescription>
-                  </CardHeader>
-                  <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {Object.entries(scoring.shedding_scores).map(([key, val]) => (
-                      <div key={key} className="space-y-1">
-                        <Label className="text-xs">{key}</Label>
-                        <Input
-                          type="number" min="0" max="100"
-                          value={val}
-                          onChange={e => updateScoringField(`shedding_scores.${key}`, parseInt(e.target.value) || 0)}
-                        />
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Scalp Feel Scores</CardTitle>
-                  </CardHeader>
-                  <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {Object.entries(scoring.scalp_feel_scores).map(([key, val]) => (
-                      <div key={key} className="space-y-1">
-                        <Label className="text-xs">{key}</Label>
-                        <Input
-                          type="number" min="0" max="100"
-                          value={val}
-                          onChange={e => updateScoringField(`scalp_feel_scores.${key}`, parseInt(e.target.value) || 0)}
-                        />
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Stress & Sleep Scores</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
-                      {Object.entries(scoring.stress_scores).map(([key, val]) => (
-                        <div key={key} className="space-y-1">
-                          <Label className="text-xs">Stress: {key}</Label>
-                          <Input
-                            type="number" min="0" max="100" value={val}
-                            onChange={e => updateScoringField(`stress_scores.${key}`, parseInt(e.target.value) || 0)}
-                          />
-                        </div>
-                      ))}
+                    <div className="space-y-1">
+                      <Label className="text-xs">Symptom penalty / item</Label>
+                      <Input type="number" value={scoring.symptom_penalty_per_item}
+                        onChange={e => updateScoringField("symptom_penalty_per_item", parseInt(e.target.value) || 0)} />
                     </div>
-                    <Separator />
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      <div className="space-y-1">
-                        <Label className="text-xs">Symptom Penalty / Item</Label>
-                        <Input
-                          type="number" value={scoring.symptom_penalty_per_item}
-                          onChange={e => updateScoringField("symptom_penalty_per_item", parseInt(e.target.value) || 0)}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs">Symptom Penalty Max</Label>
-                        <Input
-                          type="number" value={scoring.symptom_penalty_max}
-                          onChange={e => updateScoringField("symptom_penalty_max", parseInt(e.target.value) || 0)}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs">Change Penalty / Item</Label>
-                        <Input
-                          type="number" value={scoring.change_penalty_per_item}
-                          onChange={e => updateScoringField("change_penalty_per_item", parseInt(e.target.value) || 0)}
-                        />
-                      </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Symptom penalty max</Label>
+                      <Input type="number" value={scoring.symptom_penalty_max}
+                        onChange={e => updateScoringField("symptom_penalty_max", parseInt(e.target.value) || 0)} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Change penalty / item</Label>
+                      <Input type="number" value={scoring.change_penalty_per_item}
+                        onChange={e => updateScoringField("change_penalty_per_item", parseInt(e.target.value) || 0)} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Change penalty max</Label>
+                      <Input type="number" value={scoring.change_penalty_max}
+                        onChange={e => updateScoringField("change_penalty_max", parseInt(e.target.value) || 0)} />
                     </div>
                   </CardContent>
                 </Card>
+
+                <EditableScoreMap
+                  title="Improvement Thresholds"
+                  description="Score thresholds that decide which improvement message is shown."
+                  help="Each key matches a key in 'Improvement Messages' below. The user sees the message whose threshold their score falls under."
+                  value={scoring.improvement_thresholds}
+                  onChange={v => updateScoringField("improvement_thresholds", v)}
+                  keyPlaceholder="poor"
+                  valuePlaceholder="40"
+                />
               </>
             )}
           </TabsContent>

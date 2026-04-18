@@ -23,6 +23,7 @@ import AdminScalpQuiz from "./pages/AdminScalpQuiz";
 import AdminReviews from "./pages/AdminReviews";
 import AdminFAQs from "./pages/AdminFAQs";
 import AdminLeads from "./pages/AdminLeads";
+import AdminUsers from "./pages/AdminUsers";
 import Profile from "./pages/Profile";
 import KitsPage from "./pages/Kits";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -58,6 +59,7 @@ const App = () => (
               <Route path="/admin/reviews" element={<AdminReviews />} />
               <Route path="/admin/faqs" element={<AdminFAQs />} />
               <Route path="/admin/leads" element={<AdminLeads />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />

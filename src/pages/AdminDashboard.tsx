@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Users, CreditCard, TrendingUp, TrendingDown, BarChart3, ShieldCheck,
-  Package, ArrowRight, Activity, Percent, UserMinus, Gift, Star, HelpCircle, Mail,
+  Package, ArrowRight, Activity, Percent, UserMinus, Gift, Star, HelpCircle, Mail, UserCog,
 } from "lucide-react";
+import { InfoTip } from "@/components/ui/info-tip";
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
@@ -193,12 +194,18 @@ const AdminDashboard = () => {
   }
 
   const statCards = [
-    { icon: Users, label: "Total Users", value: stats.totalUsers, color: "text-primary" },
-    { icon: CreditCard, label: "Active Subscriptions", value: stats.activeSubscriptions, color: "text-primary" },
-    { icon: TrendingUp, label: "Monthly Revenue", value: `₹${stats.monthlyRevenue.toLocaleString()}`, color: "text-primary" },
-    { icon: Percent, label: "Conversion Rate", value: `${stats.conversionRate}%`, color: stats.conversionRate > 10 ? "text-primary" : "text-destructive" },
-    { icon: UserMinus, label: "Churn Rate", value: `${stats.churnRate}%`, color: stats.churnRate < 15 ? "text-primary" : "text-destructive" },
-    { icon: Gift, label: "Referral Conversions", value: stats.totalReferrals, color: "text-primary" },
+    { icon: Users, label: "Total Users", value: stats.totalUsers, color: "text-primary",
+      tip: "Total number of distinct accounts that have signed up. Includes both free and premium." },
+    { icon: CreditCard, label: "Active Subscriptions", value: stats.activeSubscriptions, color: "text-primary",
+      tip: "Users currently on the active premium plan (haven't expired or cancelled)." },
+    { icon: TrendingUp, label: "Monthly Revenue", value: `₹${stats.monthlyRevenue.toLocaleString()}`, color: "text-primary",
+      tip: "Estimated MRR = active premium users × ₹399 (current discounted price)." },
+    { icon: Percent, label: "Conversion Rate", value: `${stats.conversionRate}%`, color: stats.conversionRate > 10 ? "text-primary" : "text-destructive",
+      tip: "Percentage of all users who upgraded to premium. Healthy SaaS benchmark is >10%." },
+    { icon: UserMinus, label: "Churn Rate", value: `${stats.churnRate}%`, color: stats.churnRate < 15 ? "text-primary" : "text-destructive",
+      tip: "Percentage of subscriptions that expired or were cancelled. Lower is better — aim for <15%." },
+    { icon: Gift, label: "Referral Conversions", value: stats.totalReferrals, color: "text-primary",
+      tip: "Number of new signups that came in through a referral link." },
   ];
 
   return (
@@ -212,6 +219,9 @@ const AdminDashboard = () => {
             <p className="text-muted-foreground font-body text-sm mt-1">Business metrics and analytics at a glance.</p>
           </div>
           <div className="flex gap-2 flex-wrap">
+            <Button variant="outline" asChild>
+              <Link to="/admin/users"><UserCog className="mr-2 h-4 w-4" /> Users</Link>
+            </Button>
             <Button variant="outline" asChild>
               <Link to="/admin/products"><Package className="mr-2 h-4 w-4" /> Products</Link>
             </Button>
@@ -236,7 +246,10 @@ const AdminDashboard = () => {
             <motion.div key={s.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
               <Card className="shadow-card">
                 <CardContent className="p-4">
-                  <s.icon className={`h-5 w-5 ${s.color} mb-2`} />
+                  <div className="flex items-center justify-between">
+                    <s.icon className={`h-5 w-5 ${s.color} mb-2`} />
+                    <InfoTip>{s.tip}</InfoTip>
+                  </div>
                   <p className="font-display text-2xl font-bold text-foreground">{s.value}</p>
                   <p className="text-xs text-muted-foreground font-body">{s.label}</p>
                 </CardContent>
@@ -252,6 +265,11 @@ const AdminDashboard = () => {
             <CardHeader className="pb-2">
               <CardTitle className="font-display text-lg flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-primary" /> Revenue Growth
+                <InfoTip>
+                  Monthly revenue trend computed from premium subscriptions
+                  (₹399 × active premium users per month). Use this to spot
+                  growth or sudden drops in paid signups.
+                </InfoTip>
               </CardTitle>
               <CardDescription className="font-body text-xs">Monthly revenue trend</CardDescription>
             </CardHeader>
@@ -281,6 +299,11 @@ const AdminDashboard = () => {
             <CardHeader className="pb-2">
               <CardTitle className="font-display text-lg flex items-center gap-2">
                 <Activity className="h-5 w-5 text-primary" /> Plan Distribution
+                <InfoTip>
+                  Share of users on each plan: Premium (paying), Free (active
+                  but not paying), and Churned (expired/cancelled). A healthy
+                  product keeps the Churned slice small.
+                </InfoTip>
               </CardTitle>
               <CardDescription className="font-body text-xs">User breakdown by plan</CardDescription>
             </CardHeader>
@@ -322,6 +345,11 @@ const AdminDashboard = () => {
             <CardHeader className="pb-2">
               <CardTitle className="font-display text-lg flex items-center gap-2">
                 <Package className="h-5 w-5 text-primary" /> Product Click Tracking
+                <InfoTip>
+                  Counts how many times users clicked the "Buy" button on each
+                  recommended product. High clicks = strong purchase intent —
+                  use this to prioritise inventory and partnerships.
+                </InfoTip>
               </CardTitle>
               <CardDescription className="font-body text-xs">Purchase clicks by product</CardDescription>
             </CardHeader>
@@ -356,6 +384,11 @@ const AdminDashboard = () => {
             <CardHeader className="pb-2">
               <CardTitle className="font-display text-lg flex items-center gap-2">
                 <Gift className="h-5 w-5 text-primary" /> Top Referral Sources
+                <InfoTip>
+                  Your best advocates — users whose referral codes brought in
+                  the most clicks and signups. Reward the top entries to keep
+                  your viral loop healthy.
+                </InfoTip>
               </CardTitle>
               <CardDescription className="font-body text-xs">By conversions & clicks</CardDescription>
             </CardHeader>
@@ -391,6 +424,11 @@ const AdminDashboard = () => {
           <CardHeader className="pb-2">
             <CardTitle className="font-display text-lg flex items-center gap-2">
               <Users className="h-5 w-5 text-primary" /> User Growth
+              <InfoTip>
+                New signups per month, regardless of plan. Pair this with the
+                conversion rate KPI to see if more traffic is also turning into
+                premium customers.
+              </InfoTip>
             </CardTitle>
             <CardDescription className="font-body text-xs">New signups over time</CardDescription>
           </CardHeader>
