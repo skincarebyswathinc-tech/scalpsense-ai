@@ -725,12 +725,8 @@ const MessageRulesEditor: React.FC<MessageRulesEditorProps> = ({ rules, steps, o
                   </Button>
                 </div>
               )}
+              {/* Structured editor — works for new rules and converted legacy rules */}
               {!wasLegacy && (
-                <></>
-              )}
-              {/* Always render the full structured editor below */}
-              <></>
-              {true && (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="space-y-1.5">
