@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useQuizConfig, QuizStep, QuizField, PhotoField, ScoringConfig } from "@/hooks/useQuizConfig";
+import { useQuizConfig, QuizStep, QuizField, PhotoField, ScoringConfig, IssueRule } from "@/hooks/useQuizConfig";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,11 +13,12 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { FieldHelp } from "@/components/ui/field-help";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/landing/Navbar";
 import {
   Settings2, Save, Plus, Trash2, GripVertical, ArrowLeft, ArrowRight,
-  AlertTriangle, CheckCircle, Loader2, Eye,
+  AlertTriangle, CheckCircle, Loader2, Eye, Crown, ChevronUp, ChevronDown,
 } from "lucide-react";
 
 const AdminScalpQuiz = () => {
