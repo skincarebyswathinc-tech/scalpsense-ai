@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/landing/Navbar";
 import { Separator } from "@/components/ui/separator";
+import { getPasswordError, PASSWORD_HELP_TEXT } from "@/lib/passwordPolicy";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -20,50 +21,61 @@ const Auth = () => {
   const { toast } = useToast();
 
   const handleGoogleSignIn = async () => {
-    const { error } = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (error) {
-      toast({ title: "Google sign-in failed", description: String(error), variant: "destructive" });
+    try {
+      const { error } = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (error) throw error;
+    } catch (error) {
+      toast({ title: "Google sign-in failed", description: error instanceof Error ? error.message : String(error), variant: "destructive" });
     }
   };
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !password) {
+      toast({ title: "Missing details", description: "Enter both email and password.", variant: "destructive" });
+      return;
+    }
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) {
-      toast({ title: "Login failed", description: error.message, variant: "destructive" });
-    } else {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
+      if (error) throw error;
       navigate("/dashboard");
+    } catch (error) {
+      toast({ title: "Login failed", description: error instanceof Error ? error.message : "Please check your details and try again.", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!passwordRegex.test(password)) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const passwordError = getPasswordError(password, [displayName, normalizedEmail.split("@")[0]]);
+    if (!displayName.trim() || !normalizedEmail) {
+      toast({ title: "Missing details", description: "Enter your name and email to continue.", variant: "destructive" });
+      return;
+    }
+    if (passwordError) {
       toast({
         title: "Weak password",
-        description: "Must be 8+ chars with uppercase, lowercase, number, and special character.",
+        description: passwordError,
         variant: "destructive",
       });
       return;
     }
     setLoading(true);
-    const { data: signupData, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { display_name: displayName },
-        emailRedirectTo: window.location.origin,
-      },
-    });
-    setLoading(false);
-    if (error) {
-      toast({ title: "Signup failed", description: error.message, variant: "destructive" });
-    } else {
+    try {
+      const { data: signupData, error } = await supabase.auth.signUp({
+        email: normalizedEmail,
+        password: password.trim(),
+        options: {
+          data: { display_name: displayName.trim() },
+          emailRedirectTo: window.location.origin,
+        },
+      });
+      if (error) throw error;
       // Handle referral conversion
       const refCode = localStorage.getItem("referred_by");
       if (refCode && signupData?.user) {
@@ -104,6 +116,10 @@ const Auth = () => {
         }
       }
       toast({ title: "Check your email", description: "We sent you a verification link to confirm your account." });
+    } catch (error) {
+      toast({ title: "Signup failed", description: error instanceof Error ? error.message : "Please try again in a moment.", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -182,7 +198,8 @@ const Auth = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Password</Label>
-                    <Input id="signup-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+                    <Input id="signup-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
+                    <p className="text-xs text-muted-foreground">{PASSWORD_HELP_TEXT}</p>
                   </div>
                   <Button type="submit" variant="hero" className="w-full" disabled={loading}>
                     {loading ? "Creating account…" : "Sign Up"}
