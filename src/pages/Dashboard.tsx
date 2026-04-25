@@ -456,6 +456,9 @@ const Dashboard = () => {
         <Card className="shadow-card">
           <CardHeader>
             <CardTitle className="font-display text-lg flex items-center gap-2"><FileText className="h-5 w-5 text-primary" /> Saved Reports</CardTitle>
+            {assessmentCount > 0 && (
+              <CardDescription>{assessmentCount} assessment{assessmentCount === 1 ? "" : "s"} connected to your account.</CardDescription>
+            )}
           </CardHeader>
           <CardContent>
             {reports.length === 0 ? (
@@ -466,7 +469,8 @@ const Dashboard = () => {
                   <div key={report.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                     <div>
                       <p className="font-body text-sm font-medium text-foreground">Score: {report.scalp_score}/100 — Week {report.recovery_week}</p>
-                      <p className="text-xs text-muted-foreground">{new Date(report.created_at).toLocaleDateString()}</p>
+                      <p className="text-xs text-muted-foreground">{new Date(report.created_at).toLocaleString()}</p>
+                      {report.notes && <p className="text-xs text-muted-foreground mt-0.5">{report.notes}</p>}
                     </div>
                     <Button variant="ghost" size="sm" asChild>
                       <Link to="/report">View</Link>
@@ -492,12 +496,21 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="flex gap-4 overflow-x-auto pb-2">
-                {hairLogs.map((log) => (
-                  <div key={log.id} className="flex-shrink-0 text-center p-3 rounded-lg bg-muted/50 min-w-[80px]">
+                {hairLogs.map((log) => {
+                  const dateTime = new Date(log.logged_at).toLocaleString(undefined, {
+                    year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
+                  });
+                  return (
+                  <div
+                    key={log.id}
+                    title={`hairfall count : ${log.count}\ndate and time : ${dateTime}`}
+                    className="flex-shrink-0 text-center p-3 rounded-lg bg-muted/50 min-w-[104px] cursor-help hover:bg-muted transition-colors"
+                  >
                     <p className="font-display text-xl font-bold text-foreground">{log.count}</p>
                     <p className="text-xs text-muted-foreground">{new Date(log.logged_at).toLocaleDateString(undefined, { weekday: "short" })}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">{new Date(log.logged_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</p>
                   </div>
-                ))}
+                )})}
               </div>
             </CardContent>
           </Card>
