@@ -22,6 +22,8 @@ import RecoveryKits from "@/components/dashboard/RecoveryKits";
 import StreakCard from "@/components/dashboard/StreakCard";
 import SubmitReview from "@/components/SubmitReview";
 import { InfoTip } from "@/components/ui/info-tip";
+import { useQuizConfig } from "@/hooks/useQuizConfig";
+import { computeReportFromConfig } from "@/lib/reportScorer";
 
 interface RoutineTask {
   id: string;
@@ -46,9 +48,16 @@ interface HairFallLog {
   logged_at: string;
 }
 
+const DEFAULT_PROTOCOL_TASKS = [
+  { title: "Scalp Massage", description: "5-minute gentle circular massage to support blood flow", week_number: 1, day_of_week: null },
+  { title: "Therapeutic Shampoo", description: "Use your recommended shampoo and let it sit for 3 minutes", week_number: 1, day_of_week: null },
+  { title: "Nutrition Targets", description: "Prioritize protein, iron, biotin, and hydration today", week_number: 1, day_of_week: null },
+];
+
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const { isPremium } = useSubscription();
+  const { data: quizConfig } = useQuizConfig();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -64,6 +73,7 @@ const Dashboard = () => {
   const [scores, setScores] = useState<WeeklyScore[]>([]);
   const [scoreDelta, setScoreDelta] = useState<number | null>(null);
   const [scoreMessage, setScoreMessage] = useState("");
+  const [assessmentCount, setAssessmentCount] = useState(0);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -73,16 +83,31 @@ const Dashboard = () => {
     if (!user) return;
 
     const fetchData = async () => {
-      const [profileRes, tasksRes, reportsRes, logsRes] = await Promise.all([
+      const [profileRes, tasksRes, reportsRes, logsRes, assessmentsRes] = await Promise.all([
         supabase.from("profiles").select("display_name").eq("id", user.id).single(),
         supabase.from("routine_tasks").select("*").eq("user_id", user.id).order("week_number").order("day_of_week"),
         supabase.from("user_reports").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("hair_fall_logs").select("*").eq("user_id", user.id).order("logged_at", { ascending: false }).limit(7),
+        supabase.from("scalp_assessments" as any).select("hair_shedding, scalp_feel, symptoms, hair_changes, stress_level, sleep_hours, responses, created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
       ]);
 
       if (profileRes.data) setDisplayName(profileRes.data.display_name || "");
-      if (tasksRes.data) setTasks(tasksRes.data);
-      if (reportsRes.data) setReports(reportsRes.data);
+      let nextTasks = (tasksRes.data ?? []) as RoutineTask[];
+      const assessmentRows = (assessmentsRes.data ?? []) as any[];
+      setAssessmentCount(assessmentRows.length);
+      if (nextTasks.length === 0 && assessmentRows.length > 0) {
+        const rows = DEFAULT_PROTOCOL_TASKS.map((task) => ({ ...task, user_id: user.id, is_completed: false }));
+        const { data: seeded } = await supabase.from("routine_tasks" as any).insert(rows as any).select("*");
+        nextTasks = (seeded ?? []) as RoutineTask[];
+      }
+      setTasks(nextTasks);
+      let reportRows = (reportsRes.data ?? []) as UserReport[];
+      if (reportRows.length === 0 && assessmentRows.length > 0 && quizConfig) {
+        const latestAssessment = { ...assessmentRows[0], ...(assessmentRows[0].responses || {}) };
+        const generated = computeReportFromConfig(latestAssessment, quizConfig.scoring, quizConfig.steps);
+        reportRows = [{ id: "latest-assessment", scalp_score: generated.score, recovery_week: 1, created_at: assessmentRows[0].created_at, notes: "Generated from your latest assessment" }];
+      }
+      setReports(reportRows);
       if (logsRes.data) setHairLogs(logsRes.data);
 
       // Calculate current week number (weeks since first report or 1)
@@ -115,7 +140,7 @@ const Dashboard = () => {
     };
 
     fetchData();
-  }, [user]);
+  }, [user, quizConfig]);
 
   const latestReport = reports[0];
   const recoveryWeek = latestReport?.recovery_week ?? 1;
