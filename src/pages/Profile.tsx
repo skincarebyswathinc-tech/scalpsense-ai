@@ -50,12 +50,13 @@ const Profile = () => {
 
   const fetchActivity = async () => {
     if (!user) return;
-    const [reports, photos, completions] = await Promise.all([
+    const [reports, assessments, photos, completions] = await Promise.all([
       supabase.from("user_reports").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase.from("scalp_assessments" as any).select("id", { count: "exact", head: true }).eq("user_id", user.id),
       supabase.from("scalp_progress_photos").select("id", { count: "exact", head: true }).eq("user_id", user.id),
       supabase.from("habit_completions").select("id", { count: "exact", head: true }).eq("user_id", user.id),
     ]);
-    setReportCount(reports.count || 0);
+    setReportCount(Math.max(reports.count || 0, assessments.count || 0));
     setPhotoCount(photos.count || 0);
     setHabitStreak(completions.count || 0);
   };
