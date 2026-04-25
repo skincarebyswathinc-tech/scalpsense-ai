@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/landing/Navbar";
 import { Lock } from "lucide-react";
+import { getPasswordError, PASSWORD_HELP_TEXT } from "@/lib/passwordPolicy";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -34,30 +35,31 @@ const ResetPassword = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       toast({ title: "Passwords don't match", variant: "destructive" });
       return;
     }
-    if (!passwordRegex.test(password)) {
+    const passwordError = getPasswordError(password);
+    if (passwordError) {
       toast({
         title: "Weak password",
-        description: "Must be 8+ chars with uppercase, lowercase, number, and special character.",
+        description: passwordError,
         variant: "destructive",
       });
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.updateUser({ password });
-    setLoading(false);
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
+    try {
+      const { error } = await supabase.auth.updateUser({ password: password.trim() });
+      if (error) throw error;
       toast({ title: "Password updated!", description: "You can now log in with your new password." });
       navigate("/dashboard");
+    } catch (error) {
+      toast({ title: "Password update failed", description: error instanceof Error ? error.message : "Please request a fresh reset link and try again.", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -110,7 +112,7 @@ const ResetPassword = () => {
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                8+ characters with uppercase, lowercase, number, and special character.
+                {PASSWORD_HELP_TEXT}
               </p>
               <Button type="submit" variant="hero" className="w-full" disabled={loading}>
                 {loading ? "Updating…" : "Update Password"}
