@@ -245,7 +245,13 @@ const HabitTracker = () => {
                   >
                     <CardContent className="flex items-start gap-4 p-4">
                       <div className="mt-0.5">
-                        <Checkbox checked={done} onCheckedChange={() => toggleHabit(habit.id)} className="h-5 w-5" />
+                        <Checkbox
+                          checked={done}
+                          disabled={savingHabitId === habit.id}
+                          onClick={(e) => e.stopPropagation()}
+                          onCheckedChange={() => toggleHabit(habit.id)}
+                          className="h-5 w-5"
+                        />
                       </div>
                       <div className={`flex-1 ${done ? "opacity-60" : ""}`}>
                         <div className="flex items-center gap-2">
