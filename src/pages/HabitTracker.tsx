@@ -53,6 +53,7 @@ const HabitTracker = () => {
   const [allCompletions, setAllCompletions] = useState<Completion[]>([]);
   const [streak, setStreak] = useState(0);
   const [seeding, setSeeding] = useState(false);
+  const [savingHabitId, setSavingHabitId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -126,26 +127,34 @@ const HabitTracker = () => {
 
   const toggleHabit = async (habitId: string) => {
     if (!user) return;
+    if (savingHabitId) return;
+    setSavingHabitId(habitId);
     const isCompleted = todayCompletedIds.has(habitId);
 
-    if (isCompleted) {
-      const comp = completions.find((c) => c.habit_id === habitId);
-      if (comp) {
-        await supabase.from("habit_completions" as any).delete().eq("id", comp.id);
-        setCompletions((prev) => prev.filter((c) => c.id !== comp.id));
-        setAllCompletions((prev) => prev.filter((c) => c.id !== comp.id));
+    try {
+      if (isCompleted) {
+        const comp = completions.find((c) => c.habit_id === habitId);
+        if (comp) {
+          await supabase.from("habit_completions" as any).delete().eq("id", comp.id);
+          setCompletions((prev) => prev.filter((c) => c.id !== comp.id));
+          setAllCompletions((prev) => prev.filter((c) => c.id !== comp.id));
+        }
+      } else {
+        const { data, error } = await supabase.from("habit_completions" as any).upsert({
+          user_id: user.id, habit_id: habitId, completed_date: todayStr(),
+        } as any, { onConflict: "habit_id,completed_date" }).select("id, habit_id, completed_date").maybeSingle();
+        if (error) {
+          toast({ title: "Error", description: error.message, variant: "destructive" });
+          return;
+        }
+        if (data) {
+          const newComp = data as any as Completion;
+          setCompletions((prev) => prev.some((c) => c.habit_id === habitId) ? prev : [...prev, newComp]);
+          setAllCompletions((prev) => prev.some((c) => c.id === newComp.id) ? prev : [newComp, ...prev]);
+        }
       }
-    } else {
-      const { data, error } = await supabase.from("habit_completions" as any).insert({
-        user_id: user.id, habit_id: habitId, completed_date: todayStr(),
-      } as any).select("id, habit_id, completed_date").single();
-      if (error) {
-        toast({ title: "Error", description: error.message, variant: "destructive" });
-        return;
-      }
-      const newComp = data as any as Completion;
-      setCompletions((prev) => [...prev, newComp]);
-      setAllCompletions((prev) => [newComp, ...prev]);
+    } finally {
+      setSavingHabitId(null);
     }
   };
 
