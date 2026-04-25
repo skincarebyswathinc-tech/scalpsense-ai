@@ -83,12 +83,18 @@ const Dashboard = () => {
     if (!user) return;
 
     const fetchData = async () => {
+      const localSessionId = localStorage.getItem("scalp_session_id");
+      const assessmentQuery = supabase
+        .from("scalp_assessments" as any)
+        .select("hair_shedding, scalp_feel, symptoms, hair_changes, stress_level, sleep_hours, responses, created_at")
+        .or(localSessionId ? `user_id.eq.${user.id},session_id.eq.${localSessionId}` : `user_id.eq.${user.id}`)
+        .order("created_at", { ascending: false });
       const [profileRes, tasksRes, reportsRes, logsRes, assessmentsRes] = await Promise.all([
         supabase.from("profiles").select("display_name").eq("id", user.id).single(),
         supabase.from("routine_tasks").select("*").eq("user_id", user.id).order("week_number").order("day_of_week"),
         supabase.from("user_reports").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("hair_fall_logs").select("*").eq("user_id", user.id).order("logged_at", { ascending: false }).limit(7),
-        supabase.from("scalp_assessments" as any).select("hair_shedding, scalp_feel, symptoms, hair_changes, stress_level, sleep_hours, responses, created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
+        assessmentQuery,
       ]);
 
       if (profileRes.data) setDisplayName(profileRes.data.display_name || "");
