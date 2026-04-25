@@ -98,7 +98,7 @@ const Dashboard = () => {
       if (nextTasks.length === 0 && assessmentRows.length > 0) {
         const rows = DEFAULT_PROTOCOL_TASKS.map((task) => ({ ...task, user_id: user.id, is_completed: false }));
         const { data: seeded } = await supabase.from("routine_tasks" as any).insert(rows as any).select("*");
-        nextTasks = (seeded ?? []) as RoutineTask[];
+        nextTasks = (seeded ?? []) as unknown as RoutineTask[];
       }
       setTasks(nextTasks);
       let reportRows = (reportsRes.data ?? []) as UserReport[];
