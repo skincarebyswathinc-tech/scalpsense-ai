@@ -61,12 +61,28 @@ const AdminScalpQuiz = () => {
 
   const handleSave = async () => {
     if (!scoring) return;
+    const usedColumns: string[] = [];
+    const safeSteps = steps.map((step) => {
+      const next = { ...step } as QuizStep;
+      if (["radio", "checkbox", "text_input"].includes(next.type)) {
+        next.db_column = uniqueColumn(next.db_column || next.title || next.key, usedColumns);
+        usedColumns.push(next.db_column);
+      }
+      if (next.fields) {
+        next.fields = next.fields.map((field: any) => {
+          const db_column = uniqueColumn(field.db_column || field.label || field.key, usedColumns);
+          usedColumns.push(db_column);
+          return { ...field, db_column };
+        }) as any;
+      }
+      return next;
+    });
     setSaving(true);
     try {
       const { error } = await supabase
         .from("scalp_quiz_config" as any)
         .update({
-          steps: steps as any,
+          steps: safeSteps as any,
           scoring: scoring as any,
           version: version + 1,
           updated_by: user?.id,
@@ -75,6 +91,7 @@ const AdminScalpQuiz = () => {
         .eq("id", configId);
 
       if (error) throw error;
+      setSteps(safeSteps);
       setVersion(v => v + 1);
       await refetch();
       toast({ title: "Quiz config saved!", description: `Version ${version + 1}` });
