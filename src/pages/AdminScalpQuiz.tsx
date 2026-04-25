@@ -23,6 +23,20 @@ import {
   AlertTriangle, CheckCircle, Loader2, Eye, Crown, ChevronUp, ChevronDown,
 } from "lucide-react";
 
+const slugifyColumn = (value: string) =>
+  (value || "question")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "") || "question";
+
+const uniqueColumn = (base: string, all: string[]) => {
+  let candidate = slugifyColumn(base);
+  let i = 2;
+  while (all.includes(candidate)) candidate = `${slugifyColumn(base)}_${i++}`;
+  return candidate;
+};
+
 const AdminScalpQuiz = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -72,7 +86,16 @@ const AdminScalpQuiz = () => {
   };
 
   const updateStepField = (idx: number, field: string, value: any) => {
-    setSteps(prev => prev.map((s, i) => i === idx ? { ...s, [field]: value } : s));
+    setSteps(prev => prev.map((s, i) => {
+      if (i !== idx) return s;
+      const next = { ...s, [field]: value } as QuizStep;
+      if (field === "title" && !s.db_column && ["radio", "checkbox", "text_input"].includes(s.type)) {
+        const existing = prev.map((step, stepIdx) => stepIdx === idx ? "" : step.db_column).filter(Boolean) as string[];
+        next.db_column = uniqueColumn(value, existing);
+      }
+      if (field === "db_column") next.db_column = slugifyColumn(value);
+      return next;
+    }));
   };
 
   const addStep = (type: "radio" | "checkbox" | "photo_upload" | "lifestyle_group" | "text_input") => {
@@ -86,14 +109,14 @@ const AdminScalpQuiz = () => {
       weight: 0,
     };
     if (type === "radio" || type === "checkbox") {
-      baseStep.db_column = "";
+      baseStep.db_column = uniqueColumn(baseStep.title, steps.map(s => s.db_column).filter(Boolean) as string[]);
       baseStep.options = [{ value: "", label: "" }];
     } else if (type === "photo_upload") {
-      baseStep.fields = [{ key: `photo_${Date.now()}`, label: "Photo", db_column: "" }];
+      baseStep.fields = [{ key: `photo_${Date.now()}`, label: "Photo", db_column: uniqueColumn("photo", []) }];
     } else if (type === "lifestyle_group") {
       baseStep.fields = [];
     } else if (type === "text_input") {
-      baseStep.db_column = "";
+      baseStep.db_column = uniqueColumn(baseStep.title, steps.map(s => s.db_column).filter(Boolean) as string[]);
       baseStep.placeholder = "Enter your answer...";
     }
     setSteps(prev => [...prev, baseStep]);
