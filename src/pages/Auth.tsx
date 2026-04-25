@@ -198,7 +198,7 @@ const Auth = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Password</Label>
-                    <Input id="signup-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+                    <Input id="signup-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
                     <p className="text-xs text-muted-foreground">{PASSWORD_HELP_TEXT}</p>
                   </div>
                   <Button type="submit" variant="hero" className="w-full" disabled={loading}>
