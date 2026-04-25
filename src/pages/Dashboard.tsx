@@ -22,6 +22,8 @@ import RecoveryKits from "@/components/dashboard/RecoveryKits";
 import StreakCard from "@/components/dashboard/StreakCard";
 import SubmitReview from "@/components/SubmitReview";
 import { InfoTip } from "@/components/ui/info-tip";
+import { useQuizConfig } from "@/hooks/useQuizConfig";
+import { computeReportFromConfig } from "@/lib/reportScorer";
 
 interface RoutineTask {
   id: string;
@@ -46,9 +48,16 @@ interface HairFallLog {
   logged_at: string;
 }
 
+const DEFAULT_PROTOCOL_TASKS = [
+  { title: "Scalp Massage", description: "5-minute gentle circular massage to support blood flow", week_number: 1, day_of_week: null },
+  { title: "Therapeutic Shampoo", description: "Use your recommended shampoo and let it sit for 3 minutes", week_number: 1, day_of_week: null },
+  { title: "Nutrition Targets", description: "Prioritize protein, iron, biotin, and hydration today", week_number: 1, day_of_week: null },
+];
+
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const { isPremium } = useSubscription();
+  const { data: quizConfig } = useQuizConfig();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -64,6 +73,7 @@ const Dashboard = () => {
   const [scores, setScores] = useState<WeeklyScore[]>([]);
   const [scoreDelta, setScoreDelta] = useState<number | null>(null);
   const [scoreMessage, setScoreMessage] = useState("");
+  const [assessmentCount, setAssessmentCount] = useState(0);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -73,16 +83,37 @@ const Dashboard = () => {
     if (!user) return;
 
     const fetchData = async () => {
-      const [profileRes, tasksRes, reportsRes, logsRes] = await Promise.all([
+      const localSessionId = localStorage.getItem("scalp_session_id");
+      const assessmentQuery = supabase
+        .from("scalp_assessments" as any)
+        .select("hair_shedding, scalp_feel, symptoms, hair_changes, stress_level, sleep_hours, responses, created_at")
+        .or(localSessionId ? `user_id.eq.${user.id},session_id.eq.${localSessionId}` : `user_id.eq.${user.id}`)
+        .order("created_at", { ascending: false });
+      const [profileRes, tasksRes, reportsRes, logsRes, assessmentsRes] = await Promise.all([
         supabase.from("profiles").select("display_name").eq("id", user.id).single(),
         supabase.from("routine_tasks").select("*").eq("user_id", user.id).order("week_number").order("day_of_week"),
         supabase.from("user_reports").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("hair_fall_logs").select("*").eq("user_id", user.id).order("logged_at", { ascending: false }).limit(7),
+        assessmentQuery,
       ]);
 
       if (profileRes.data) setDisplayName(profileRes.data.display_name || "");
-      if (tasksRes.data) setTasks(tasksRes.data);
-      if (reportsRes.data) setReports(reportsRes.data);
+      let nextTasks = (tasksRes.data ?? []) as RoutineTask[];
+      const assessmentRows = (assessmentsRes.data ?? []) as any[];
+      setAssessmentCount(assessmentRows.length);
+      if (nextTasks.length === 0 && assessmentRows.length > 0) {
+        const rows = DEFAULT_PROTOCOL_TASKS.map((task) => ({ ...task, user_id: user.id, is_completed: false }));
+        const { data: seeded } = await supabase.from("routine_tasks" as any).insert(rows as any).select("*");
+        nextTasks = (seeded ?? []) as unknown as RoutineTask[];
+      }
+      setTasks(nextTasks);
+      let reportRows = (reportsRes.data ?? []) as UserReport[];
+      if (reportRows.length === 0 && assessmentRows.length > 0 && quizConfig) {
+        const latestAssessment = { ...assessmentRows[0], ...(assessmentRows[0].responses || {}) };
+        const generated = computeReportFromConfig(latestAssessment, quizConfig.scoring, quizConfig.steps);
+        reportRows = [{ id: "latest-assessment", scalp_score: generated.score, recovery_week: 1, created_at: assessmentRows[0].created_at, notes: "Generated from your latest assessment" }];
+      }
+      setReports(reportRows);
       if (logsRes.data) setHairLogs(logsRes.data);
 
       // Calculate current week number (weeks since first report or 1)
@@ -115,7 +146,7 @@ const Dashboard = () => {
     };
 
     fetchData();
-  }, [user]);
+  }, [user, quizConfig]);
 
   const latestReport = reports[0];
   const recoveryWeek = latestReport?.recovery_week ?? 1;
@@ -431,6 +462,9 @@ const Dashboard = () => {
         <Card className="shadow-card">
           <CardHeader>
             <CardTitle className="font-display text-lg flex items-center gap-2"><FileText className="h-5 w-5 text-primary" /> Saved Reports</CardTitle>
+            {assessmentCount > 0 && (
+              <CardDescription>{assessmentCount} assessment{assessmentCount === 1 ? "" : "s"} connected to your account.</CardDescription>
+            )}
           </CardHeader>
           <CardContent>
             {reports.length === 0 ? (
@@ -441,7 +475,8 @@ const Dashboard = () => {
                   <div key={report.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                     <div>
                       <p className="font-body text-sm font-medium text-foreground">Score: {report.scalp_score}/100 — Week {report.recovery_week}</p>
-                      <p className="text-xs text-muted-foreground">{new Date(report.created_at).toLocaleDateString()}</p>
+                      <p className="text-xs text-muted-foreground">{new Date(report.created_at).toLocaleString()}</p>
+                      {report.notes && <p className="text-xs text-muted-foreground mt-0.5">{report.notes}</p>}
                     </div>
                     <Button variant="ghost" size="sm" asChild>
                       <Link to="/report">View</Link>
@@ -467,12 +502,21 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="flex gap-4 overflow-x-auto pb-2">
-                {hairLogs.map((log) => (
-                  <div key={log.id} className="flex-shrink-0 text-center p-3 rounded-lg bg-muted/50 min-w-[80px]">
+                {hairLogs.map((log) => {
+                  const dateTime = new Date(log.logged_at).toLocaleString(undefined, {
+                    year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
+                  });
+                  return (
+                  <div
+                    key={log.id}
+                    title={`hairfall count : ${log.count}\ndate and time : ${dateTime}`}
+                    className="flex-shrink-0 text-center p-3 rounded-lg bg-muted/50 min-w-[104px] cursor-help hover:bg-muted transition-colors"
+                  >
                     <p className="font-display text-xl font-bold text-foreground">{log.count}</p>
                     <p className="text-xs text-muted-foreground">{new Date(log.logged_at).toLocaleDateString(undefined, { weekday: "short" })}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">{new Date(log.logged_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</p>
                   </div>
-                ))}
+                )})}
               </div>
             </CardContent>
           </Card>

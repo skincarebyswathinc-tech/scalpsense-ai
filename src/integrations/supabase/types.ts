@@ -564,11 +564,13 @@ export type Database = {
           photo_front_scalp: string | null
           photo_top_scalp: string | null
           protein_intake: string | null
+          responses: Json
           scalp_feel: Database["public"]["Enums"]["scalp_feel"]
           session_id: string
           sleep_hours: number
           stress_level: Database["public"]["Enums"]["stress_level"]
           symptoms: string[] | null
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -582,11 +584,13 @@ export type Database = {
           photo_front_scalp?: string | null
           photo_top_scalp?: string | null
           protein_intake?: string | null
+          responses?: Json
           scalp_feel: Database["public"]["Enums"]["scalp_feel"]
           session_id?: string
           sleep_hours: number
           stress_level: Database["public"]["Enums"]["stress_level"]
           symptoms?: string[] | null
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -600,11 +604,13 @@ export type Database = {
           photo_front_scalp?: string | null
           photo_top_scalp?: string | null
           protein_intake?: string | null
+          responses?: Json
           scalp_feel?: Database["public"]["Enums"]["scalp_feel"]
           session_id?: string
           sleep_hours?: number
           stress_level?: Database["public"]["Enums"]["stress_level"]
           symptoms?: string[] | null
+          user_id?: string | null
         }
         Relationships: []
       }

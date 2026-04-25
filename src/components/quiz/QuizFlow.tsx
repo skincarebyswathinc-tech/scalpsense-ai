@@ -12,12 +12,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQuizConfig, QuizStep, QuizField, PhotoField } from "@/hooks/useQuizConfig";
+import { useAuth } from "@/hooks/useAuth";
 import { Upload, Camera, ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+
+const ASSESSMENT_COLUMNS = new Set([
+  "hair_shedding", "scalp_feel", "symptoms", "hair_changes", "stress_level", "sleep_hours",
+  "protein_intake", "hair_styling_frequency", "hair_coloring_treatments", "photo_front_scalp", "photo_top_scalp", "photo_crown",
+]);
 
 const QuizFlow = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const { data: config, isLoading, error } = useQuizConfig();
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -89,29 +96,35 @@ const QuizFlow = () => {
     setSubmitting(true);
     try {
       const sessionId = crypto.randomUUID();
-      const insertData: Record<string, any> = { session_id: sessionId };
+      const responses: Record<string, any> = {};
+      const insertData: Record<string, any> = { session_id: sessionId, responses };
+      if (user?.id) insertData.user_id = user.id;
 
       // Map answers to DB columns
       for (const s of steps) {
         if (s.type === "radio" || s.type === "checkbox") {
           if (s.db_column && answers[s.key] !== undefined) {
-            insertData[s.db_column] = answers[s.key] || (s.type === "checkbox" ? [] : null);
+            responses[s.db_column] = answers[s.key] || (s.type === "checkbox" ? [] : null);
+            if (ASSESSMENT_COLUMNS.has(s.db_column)) insertData[s.db_column] = responses[s.db_column];
           }
         } else if (s.type === "text_input") {
           if (s.db_column && answers[s.key]) {
-            insertData[s.db_column] = answers[s.key];
+            responses[s.db_column] = answers[s.key];
+            if (ASSESSMENT_COLUMNS.has(s.db_column)) insertData[s.db_column] = responses[s.db_column];
           }
         } else if (s.type === "lifestyle_group" && s.fields) {
           for (const f of s.fields as QuizField[]) {
             if (f.db_column && answers[f.key] !== undefined) {
-              insertData[f.db_column] = answers[f.key] || null;
+              responses[f.db_column] = answers[f.key] || null;
+              if (ASSESSMENT_COLUMNS.has(f.db_column)) insertData[f.db_column] = responses[f.db_column];
             }
           }
         } else if (s.type === "photo_upload" && s.fields) {
           for (const f of s.fields as PhotoField[]) {
             const file = photos[f.key];
             if (file && f.db_column) {
-              insertData[f.db_column] = await uploadPhoto(file, `${sessionId}/${f.key}.jpg`);
+              responses[f.db_column] = await uploadPhoto(file, `${sessionId}/${f.key}.jpg`);
+              if (ASSESSMENT_COLUMNS.has(f.db_column)) insertData[f.db_column] = responses[f.db_column];
             }
           }
         }
@@ -120,6 +133,10 @@ const QuizFlow = () => {
       // Ensure required DB fields have defaults
       if (!insertData.symptoms) insertData.symptoms = [];
       if (!insertData.hair_changes) insertData.hair_changes = [];
+      if (!insertData.hair_shedding) insertData.hair_shedding = "50_100";
+      if (!insertData.scalp_feel) insertData.scalp_feel = "balanced";
+      if (!insertData.stress_level) insertData.stress_level = "medium";
+      if (!insertData.sleep_hours) insertData.sleep_hours = 7;
 
       const { error } = await supabase.from("scalp_assessments").insert(insertData as any);
       if (error) throw error;

@@ -23,6 +23,20 @@ import {
   AlertTriangle, CheckCircle, Loader2, Eye, Crown, ChevronUp, ChevronDown,
 } from "lucide-react";
 
+const slugifyColumn = (value: string) =>
+  (value || "question")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "") || "question";
+
+const uniqueColumn = (base: string, all: string[]) => {
+  let candidate = slugifyColumn(base);
+  let i = 2;
+  while (all.includes(candidate)) candidate = `${slugifyColumn(base)}_${i++}`;
+  return candidate;
+};
+
 const AdminScalpQuiz = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -47,12 +61,28 @@ const AdminScalpQuiz = () => {
 
   const handleSave = async () => {
     if (!scoring) return;
+    const usedColumns: string[] = [];
+    const safeSteps = steps.map((step) => {
+      const next = { ...step } as QuizStep;
+      if (["radio", "checkbox", "text_input"].includes(next.type)) {
+        next.db_column = uniqueColumn(next.db_column || next.title || next.key, usedColumns);
+        usedColumns.push(next.db_column);
+      }
+      if (next.fields) {
+        next.fields = next.fields.map((field: any) => {
+          const db_column = uniqueColumn(field.db_column || field.label || field.key, usedColumns);
+          usedColumns.push(db_column);
+          return { ...field, db_column };
+        }) as any;
+      }
+      return next;
+    });
     setSaving(true);
     try {
       const { error } = await supabase
         .from("scalp_quiz_config" as any)
         .update({
-          steps: steps as any,
+          steps: safeSteps as any,
           scoring: scoring as any,
           version: version + 1,
           updated_by: user?.id,
@@ -61,6 +91,7 @@ const AdminScalpQuiz = () => {
         .eq("id", configId);
 
       if (error) throw error;
+      setSteps(safeSteps);
       setVersion(v => v + 1);
       await refetch();
       toast({ title: "Quiz config saved!", description: `Version ${version + 1}` });
@@ -72,7 +103,16 @@ const AdminScalpQuiz = () => {
   };
 
   const updateStepField = (idx: number, field: string, value: any) => {
-    setSteps(prev => prev.map((s, i) => i === idx ? { ...s, [field]: value } : s));
+    setSteps(prev => prev.map((s, i) => {
+      if (i !== idx) return s;
+      const next = { ...s, [field]: value } as QuizStep;
+      if (field === "title" && !s.db_column && ["radio", "checkbox", "text_input"].includes(s.type)) {
+        const existing = prev.map((step, stepIdx) => stepIdx === idx ? "" : step.db_column).filter(Boolean) as string[];
+        next.db_column = uniqueColumn(value, existing);
+      }
+      if (field === "db_column") next.db_column = slugifyColumn(value);
+      return next;
+    }));
   };
 
   const addStep = (type: "radio" | "checkbox" | "photo_upload" | "lifestyle_group" | "text_input") => {
@@ -86,14 +126,14 @@ const AdminScalpQuiz = () => {
       weight: 0,
     };
     if (type === "radio" || type === "checkbox") {
-      baseStep.db_column = "";
+      baseStep.db_column = uniqueColumn(baseStep.title, steps.map(s => s.db_column).filter(Boolean) as string[]);
       baseStep.options = [{ value: "", label: "" }];
     } else if (type === "photo_upload") {
-      baseStep.fields = [{ key: `photo_${Date.now()}`, label: "Photo", db_column: "" }];
+      baseStep.fields = [{ key: `photo_${Date.now()}`, label: "Photo", db_column: uniqueColumn("photo", []) }];
     } else if (type === "lifestyle_group") {
       baseStep.fields = [];
     } else if (type === "text_input") {
-      baseStep.db_column = "";
+      baseStep.db_column = uniqueColumn(baseStep.title, steps.map(s => s.db_column).filter(Boolean) as string[]);
       baseStep.placeholder = "Enter your answer...";
     }
     setSteps(prev => [...prev, baseStep]);

@@ -64,11 +64,11 @@ const Report = () => {
     if (sid) {
       supabase
         .from("scalp_assessments")
-        .select("hair_shedding, scalp_feel, symptoms, hair_changes, stress_level, sleep_hours")
+        .select("hair_shedding, scalp_feel, symptoms, hair_changes, stress_level, sleep_hours, responses")
         .eq("session_id", sid)
-        .single()
+        .maybeSingle()
         .then(({ data }) => {
-          if (data) setAssessment(data as unknown as AssessmentData);
+          if (data) setAssessment({ ...(data as any), ...((data as any).responses || {}) } as AssessmentData);
         });
     }
   }, []);
