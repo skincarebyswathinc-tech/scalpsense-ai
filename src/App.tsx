@@ -29,6 +29,7 @@ import KitsPage from "./pages/Kits";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import Presentations from "./pages/Presentations";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +66,7 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/kits" element={<KitsPage />} />
               <Route path="/kits/:slug" element={<KitsPage />} />
+              <Route path="/presentations" element={<Presentations />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
